@@ -607,6 +607,17 @@ export const actions = {
     })
   },
 
+  /** 単問の解き直し。最初の回答の後に記録するだけで、基本統計には加えない */
+  retrySingle(questionId: string, choiceId: string) {
+    update((s) => {
+      const record = s.singleAnswers[ownerKeyOf(s)]?.[questionId]
+      if (!record) return
+      const q = buildQuestion(questionId, s.stats)
+      if (!q) return
+      record.retries = [...(record.retries ?? []), { choiceId, correct: q.correctChoiceId === choiceId, at: new Date().toISOString() }]
+    })
+  },
+
   /** 解説だけを見る（仮仕様）。統計は増やさず、後から選んでも基本統計対象にしない */
   viewExplanationOnly(questionId: string) {
     update((s) => {

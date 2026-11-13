@@ -16,6 +16,12 @@ import { attemptTitle } from '@/lib/labels'
 import { formatClock } from '@/lib/time'
 import type { Attempt } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { useIdFromQuery } from '@/components/id-from-query'
+import { routes } from '@/lib/routes'
+
+export function AttemptViewFromQuery() {
+  return <AttemptView id={useIdFromQuery()} />
+}
 
 export function AttemptView({ id }: { id: string }) {
   const state = useAppState()
@@ -41,16 +47,16 @@ function ActiveAttempt({ attempt }: { attempt: Attempt }) {
     if (finishing.current) return
     finishing.current = true
     actions.finalizeAttempt(attempt.id, timedOut ? 'timedOut' : 'completed', answersRef.current)
-    router.replace(`/attempts/${attempt.id}/result`)
+    router.replace(routes.result(attempt.id))
   }
   useEffect(() => {
-    if (attempt.finalized) { router.replace(`/attempts/${attempt.id}/result`); return }
+    if (attempt.finalized) { router.replace(routes.result(attempt.id)); return }
     const tick = () => {
       setNow(Date.now())
       if (attempt.deadlineAt && Date.now() >= new Date(attempt.deadlineAt).getTime() && !finishing.current) {
         finishing.current = true
         actions.finalizeAttempt(attempt.id, 'timedOut', answersRef.current)
-        router.replace(`/attempts/${attempt.id}/result`)
+        router.replace(routes.result(attempt.id))
       }
     }
     tick()

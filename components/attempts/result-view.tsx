@@ -16,6 +16,12 @@ import { resolveSnapshot } from '@/lib/stats'
 import { isPassed } from '@/lib/scoring'
 import { attemptTitle, levelLabel } from '@/lib/labels'
 import { formatDuration, formatPercent } from '@/lib/time'
+import { useIdFromQuery } from '@/components/id-from-query'
+import { routes } from '@/lib/routes'
+
+export function ResultViewFromQuery() {
+  return <ResultView id={useIdFromQuery()} />
+}
 
 export function ResultView({ id }: { id: string }) {
   const state = useAppState()
@@ -25,7 +31,7 @@ export function ResultView({ id }: { id: string }) {
   const [starting, setStarting] = useState(false)
   const found = state?.attempts[id]
   const a = found && state && isOwnAttempt(state, found) ? found : undefined
-  useEffect(() => { if (a && !a.finalized) router.replace(`/attempts/${id}`); else if (a) actions.markResultViewed(id) }, [a?.finalized, id, router])
+  useEffect(() => { if (a && !a.finalized) router.replace(routes.attempt(id)); else if (a) actions.markResultViewed(id) }, [a?.finalized, id, router])
   if (!state) return <PageSkeleton />
   if (found && !a) return <PageContainer><h1>この結果は表示できません</h1><p>別の利用者の回です。成績・履歴は本人のみに表示されます。</p><LinkButton href="/">ホームへ</LinkButton></PageContainer>
   if (!a) return <PageContainer><h1>結果が見つかりません</h1><LinkButton href="/">ホームへ</LinkButton></PageContainer>
@@ -34,10 +40,10 @@ export function ResultView({ id }: { id: string }) {
   const title = a.mode === 'test' ? isPassed(a) ? '合格' : '今回は不合格' : a.mode === 'review' ? '復習が完了しました' : '練習が完了しました'
   const begin = (review: boolean) => {
     if (starting) return
-    if (!review && a.mode === 'test') { router.push('/tests'); return }
+    if (!review && a.mode === 'test') { router.push(a.testKind ? `/tests?kind=${a.testKind}` : '/tests'); return }
     setStarting(true)
     const result = review ? actions.startReview(id) : actions.startPractice(a.practiceSettings ?? { count: a.questionSnapshots.length, fieldIds: [...new Set(a.questionSnapshots.map(q => q.fieldId))], difficulties: [], timeLimitMinutes: null })
-    if (result.ok) router.push(`/attempts/${result.attemptId}`)
+    if (result.ok) router.push(routes.attempt(result.attemptId))
     else { setError(result.message); setStarting(false) }
   }
   return <PageContainer>

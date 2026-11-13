@@ -1,22 +1,26 @@
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { LinkButton } from '@/components/link-button'
-import type { Metadata } from 'next'
+'use client'
+
 import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { LinkButton } from '@/components/link-button'
 import { PageContainer } from '@/components/shell/page'
+import { useIdFromQuery } from '@/components/id-from-query'
 import { getNotice } from '@/lib/data/notices'
+import { routes } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const { id } = await params
-  return { title: getNotice(id)?.title ?? 'お知らせ' }
-}
-
-export default async function NoticePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export function NoticeDetailViewFromQuery() {
+  const id = useIdFromQuery()
   const notice = getNotice(id)
-  if (!notice) notFound()
+  if (!notice) {
+    return (
+      <PageContainer narrow>
+        <div className="flex flex-col items-center gap-4 rounded-2xl border bg-card px-6 py-12 text-center">
+          <p className="font-bold">お知らせが見つかりません</p>
+          <LinkButton href="/" variant="outline" className="h-11">ホームへ</LinkButton>
+        </div>
+      </PageContainer>
+    )
+  }
 
   return (
     <PageContainer narrow>
@@ -48,7 +52,7 @@ export default async function NoticePage({ params }: { params: Promise<{ id: str
           </dl>
         )}
         {notice.correction && (
-          <LinkButton href={`/questions/${notice.correction.questionId}`} variant="outline" className="h-11 self-start">
+          <LinkButton href={routes.question(notice.correction.questionId)} variant="outline" className="h-11 self-start">
               {`${notice.correction.questionId} を見る`}
               <ArrowRight aria-hidden="true" />
             </LinkButton>

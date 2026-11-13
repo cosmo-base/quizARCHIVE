@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { X, ArrowRight, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
@@ -14,6 +14,7 @@ import { testKindLabel, testKindTarget } from '@/lib/labels'
 import { eligibleTestKind } from '@/lib/recognition'
 import { actions, currentUser, useAppState } from '@/lib/store'
 import type { Question, TestKind } from '@/lib/types'
+import { routes } from '@/lib/routes'
 
 export function TestSetupView() {
   const state = useAppState()
@@ -22,20 +23,32 @@ export function TestSetupView() {
   const [prepared, setPrepared] = useState<{ kind: TestKind; questions: Question[]; adjusted: boolean } | null>(null)
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
+  const params = useSearchParams()
+  const autoOpened = useRef(false)
+  // 結果画面の「同じ条件で新しく挑戦」から来た場合（?kind=）、その種類の開始前確認を一度だけ開く
+  useEffect(() => {
+    const kind = params.get('kind') as TestKind | null
+    if (!state || autoOpened.current || !kind || !(kind in testKindLabel)) return
+    autoOpened.current = true
+    const u = currentUser(state)
+    if (u && eligibleTestKind(u.level) !== kind) { setError('現在のレベルでは、このテストは開始できません。受験できるテストを選んでください。'); return }
+    prepare(kind)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, params])
   if (!state) return <PageSkeleton />
   const user = currentUser(state)
-  const prepare = (kind: TestKind) => {
+  function prepare(kind: TestKind) {
     setError('')
     const result = actions.prepareTest(kind)
     if (!result.ok) { setError(result.message); return }
     setPrepared({ kind, questions: result.questions, adjusted: result.adjusted })
-    if (!user) setGuestPrompt(true)
+    if (!(state && currentUser(state))) setGuestPrompt(true)
   }
   const start = () => {
     if (!prepared || starting) return
     setStarting(true)
     const result = actions.startTest(prepared.kind, prepared.questions, prepared)
-    if (result.ok) router.push(`/attempts/${result.attemptId}`)
+    if (result.ok) router.push(routes.attempt(result.attemptId))
     else { setError(result.message); setStarting(false); setPrepared(null) }
   }
   return <PageContainer>

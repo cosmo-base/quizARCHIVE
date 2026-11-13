@@ -16,6 +16,11 @@ import { mockConfig } from '@/lib/config'
 import { fetchQuestion } from '@/lib/mock-repository'
 import { actions, ownerKeyOf, useAppState } from '@/lib/store'
 import { cn } from '@/lib/utils'
+import { useIdFromQuery } from '@/components/id-from-query'
+
+export function QuestionDetailViewFromQuery() {
+  return <QuestionDetailView id={useIdFromQuery()} />
+}
 
 export function QuestionDetailView({ id }: { id: string }) {
   const state = useAppState()
@@ -27,6 +32,8 @@ export function QuestionDetailView({ id }: { id: string }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [selfCheck, setSelfCheck] = useState<string | null>(null)
+  /** 解き直し中の選択（null＝解き直していない）と、その結果 */
+  const [retry, setRetry] = useState<{ choiceId: string | null; result: boolean | null } | null>(null)
 
   const back = () => {
     if (window.history.length > 1) router.back()
@@ -89,7 +96,14 @@ export function QuestionDetailView({ id }: { id: string }) {
     }, mockConfig.attempt.saveDelayMs)
   }
 
-  const choiceValue = answered ? record!.choiceId : explanationOnly ? selfCheck : selected
+  const retrying = retry !== null && retry.result === null
+  const retryDone = retry !== null && retry.result !== null
+  const choiceValue = retry ? retry.choiceId : answered ? record!.choiceId : explanationOnly ? selfCheck : selected
+  const submitRetry = () => {
+    if (!retry?.choiceId || retry.result !== null) return
+    actions.retrySingle(q.id, retry.choiceId)
+    setRetry({ ...retry, result: retry.choiceId === q.correctChoiceId })
+  }
 
   return (
     <PageContainer narrow>
@@ -105,9 +119,9 @@ export function QuestionDetailView({ id }: { id: string }) {
           legend="選択肢"
           choices={q.choices}
           value={choiceValue}
-          onChange={explanationOnly ? setSelfCheck : setSelected}
-          disabled={answered || submitting}
-          reveal={answered || (explanationOnly && selfCheck) ? { correctChoiceId: q.correctChoiceId } : undefined}
+          onChange={retrying ? (c) => setRetry({ choiceId: c, result: null }) : explanationOnly ? setSelfCheck : setSelected}
+          disabled={retrying ? false : answered || submitting}
+          reveal={retrying ? undefined : answered || (explanationOnly && selfCheck) ? { correctChoiceId: q.correctChoiceId } : undefined}
         />
 
         {!revealed && (
@@ -125,16 +139,34 @@ export function QuestionDetailView({ id }: { id: string }) {
           </div>
         )}
 
+        {retrying && (
+          <div className="flex flex-col gap-3">
+            <Button className="h-12 text-base" disabled={!retry?.choiceId} onClick={submitRetry}>
+              解き直しの回答をする
+            </Button>
+            <Button variant="ghost" className="h-11 text-muted-foreground" onClick={() => setRetry(null)}>
+              解き直しをやめる
+            </Button>
+          </div>
+        )}
+
         <div aria-live="polite" className="flex flex-col gap-4">
-          {answered && (
+          {answered && !retry && (
             <ResultLine correct={Boolean(record!.correct)} />
+          )}
+          {retryDone && <ResultLine correct={Boolean(retry!.result)} />}
+          {retry && <p className="text-sm text-muted-foreground">解き直しの回答は記録されますが、正答率の集計には含まれません。</p>}
+          {answered && !retrying && (
+            <Button variant="outline" className="h-11 self-start" onClick={() => setRetry({ choiceId: null, result: null })}>
+              もう一度解く
+            </Button>
           )}
           {explanationOnly && (
             <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
               解説を先に見たため、この問題の回答は正答率に含まれません。選択肢を選ぶと正解を確認できます。
             </p>
           )}
-          {revealed && <ExplanationBlock explanation={q.explanation} references={q.references} />}
+          {revealed && !retrying && <ExplanationBlock explanation={q.explanation} references={q.references} />}
         </div>
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">

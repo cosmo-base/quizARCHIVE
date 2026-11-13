@@ -1,24 +1,26 @@
 'use client'
 import { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { actions, currentUser, useAppState, type DemoFlags } from '@/lib/store'
 import { levels, levelLabel } from '@/lib/labels'
+import { routes } from '@/lib/routes'
 
 export function DemoControls() {
   const state = useAppState()
   const path = usePathname()
+  const search = useSearchParams()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
   if (process.env.NODE_ENV === 'production' || !state) return null
   const user = currentUser(state)
-  const activeId = path.match(/^\/attempts\/([^/]+)$/)?.[1]
+  const activeId = path === '/attempts' ? search.get('id') ?? undefined : undefined
   const scenario = (kind: 'fail31' | 'pass32' | 'timeout32' | 'timeout0') => {
     const result = actions.runScenario(kind)
-    if (result.ok) { setOpen(false); router.push(`/attempts/${result.attemptId}/result`) } else setError(result.message)
+    if (result.ok) { setOpen(false); router.push(routes.result(result.attemptId)) } else setError(result.message)
   }
   const flags: [keyof DemoFlags, string][] = [['saveFailure', '回答保存を失敗させる'], ['reportFailure', '報告送信を失敗させる'], ['listError', '一覧の読み込みエラー'], ['emptyHistory', '履歴0件']]
   return <><div className="fixed right-3 bottom-24 z-40"><Button variant="outline" className="h-11 shadow-sm" onClick={() => setOpen(true)}><Settings2 data-icon="inline-start" />デモ設定</Button></div><Sheet open={open} onOpenChange={setOpen}><SheetContent className="overflow-y-auto"><SheetHeader><SheetTitle>開発用デモ設定</SheetTitle><SheetDescription>UI検証専用です。本番では表示されません。</SheetDescription></SheetHeader><div className="flex flex-col gap-6 p-4">

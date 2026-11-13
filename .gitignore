@@ -20,3 +20,8 @@ appsscript.json
 .clasp.json
 .clasprc.json
 gas/
+
+# ビルド成果物（GitHub Pages 用の静的書き出し）
+out/
+next-env.d.ts
+*.tsbuildinfo

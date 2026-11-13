@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { NoticeList } from './notice-list'
 import { OrbitMark } from './orbit-mark'
 import { AttemptOutcome } from '@/components/history/attempt-outcome'
+import { routes } from '@/lib/routes'
 
 export function HomeView() {
   const state = useAppState()
@@ -97,14 +98,14 @@ export function HomeView() {
                             className="h-11 shrink-0"
                             onClick={() => {
                               actions.finalizeAttempt(a.id, 'timedOut')
-                              router.push(`/attempts/${a.id}/result`)
+                              router.push(routes.result(a.id))
                             }}
                           >
                             結果を見る
                             <ArrowRight aria-hidden="true" />
                           </Button>
                         ) : (
-                          <LinkButton href={`/attempts/${a.id}`} className="h-11 shrink-0">
+                          <LinkButton href={routes.attempt(a.id)} className="h-11 shrink-0">
                               <PlayCircle aria-hidden="true" />
                               再開する
                             </LinkButton>
@@ -150,7 +151,7 @@ export function HomeView() {
                     {recent.map((a) => (
                       <li key={a.id}>
                         <Link
-                          href={`/attempts/${a.id}/result`}
+                          href={routes.result(a.id)}
                           className="flex items-center justify-between gap-3 rounded-lg py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50"
                         >
                           <span className="flex min-w-0 flex-col gap-0.5">

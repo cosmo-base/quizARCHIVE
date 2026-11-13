@@ -7,6 +7,7 @@ import { attemptTitle } from '@/lib/labels'
 import { inProgressAttempts } from '@/lib/selectors'
 import type { AppState } from '@/lib/store'
 import type { Mode } from '@/lib/types'
+import { routes } from '@/lib/routes'
 
 export function ResumeBanner({ state, mode }: { state: AppState; mode?: Mode }) {
   const list = inProgressAttempts(state).filter((a) => !mode || a.mode === mode)
@@ -19,7 +20,7 @@ export function ResumeBanner({ state, mode }: { state: AppState; mode?: Mode }) 
         <p className="font-bold">{`回答中の${attemptTitle(a.mode, a.testKind)}があります`}</p>
         <p className="text-sm text-muted-foreground">{`${a.questionSnapshots.length}問中 ${answered}問回答済み。続きから再開できます。`}</p>
       </div>
-      <LinkButton href={`/attempts/${a.id}`} className="h-11 shrink-0">
+      <LinkButton href={routes.attempt(a.id)} className="h-11 shrink-0">
           <PlayCircle aria-hidden="true" />
           再開する
         </LinkButton>

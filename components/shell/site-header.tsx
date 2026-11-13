@@ -25,7 +25,7 @@ export function isActivePath(pathname: string, href: string) {
 
 export function Wordmark() {
   return (
-    <span className="flex items-baseline gap-2">
+    <span className="flex items-baseline gap-2 whitespace-nowrap">
       <span className="text-[17px] font-bold tracking-tight text-foreground">Cosmo Base</span>
       <span className="text-sm font-medium text-primary">宇宙クイズ</span>
     </span>
@@ -73,7 +73,7 @@ export function SiteHeader() {
           ) : user ? (
             <>
               <Link href="/progress" className="rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label={`個人レベルを見る`}>
-                <UserLevelBadge level={user.level} />
+                <UserLevelBadge level={user.level} compact />
               </Link>
               <Button variant="ghost" size="icon" className="size-10" aria-label="ログアウト" onClick={() => actions.logout()}>
                 <LogOut aria-hidden="true" />

@@ -14,6 +14,7 @@ import { actions, currentUser, filterPracticePool, getAllQuestions, useAppState 
 import { formatDuration } from '@/lib/time'
 import type { QuestionDifficulty } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { routes } from '@/lib/routes'
 
 function parseList(v: string | null) {
   return v ? v.split(',').filter(Boolean) : []
@@ -46,7 +47,7 @@ export function PracticeSetupView() {
     setError(null)
     const result = actions.startPractice({ count, fieldIds, difficulties, timeLimitMinutes: timeLimit, keyword: keyword || undefined })
     if (result.ok) {
-      router.push(`/attempts/${result.attemptId}`)
+      router.push(routes.attempt(result.attemptId))
     } else {
       setError(result.message)
       setStarting(false)

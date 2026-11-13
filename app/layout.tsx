@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_JP } from 'next/font/google'
 import './globals.css'
+import { Suspense } from 'react'
 import { DemoControls } from '@/components/demo/demo-controls'
+
+/** GitHub Pages ではリポジトリ名のパス配下で公開するため、静的ファイルのURLに付ける */
+const basePath = process.env.PAGES_BASE_PATH ?? ''
 
 const notoSansJp = Noto_Sans_JP({
   subsets: ['latin'],
@@ -20,11 +24,11 @@ export const metadata: Metadata = {
   generator: 'v0.app',
   icons: {
     icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: `${basePath}/icon-light-32x32.png`, media: '(prefers-color-scheme: light)' },
+      { url: `${basePath}/icon-dark-32x32.png`, media: '(prefers-color-scheme: dark)' },
+      { url: `${basePath}/icon.svg`, type: 'image/svg+xml' },
     ],
-    apple: '/apple-icon.png',
+    apple: `${basePath}/apple-icon.png`,
   },
 }
 
@@ -41,7 +45,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ja" className={`${notoSansJp.variable} bg-background`}>
       <body className="min-h-dvh font-sans antialiased">
         {children}
-        <DemoControls />
+        <Suspense fallback={null}>
+          <DemoControls />
+        </Suspense>
       </body>
     </html>
   )

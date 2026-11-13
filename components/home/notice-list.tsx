@@ -3,6 +3,7 @@ import { ChevronRight, Info, TriangleAlert } from 'lucide-react'
 import { notices } from '@/lib/data/notices'
 import { formatDate } from '@/lib/time'
 import { cn } from '@/lib/utils'
+import { routes } from '@/lib/routes'
 
 export function NoticeList() {
   return (
@@ -17,7 +18,7 @@ export function NoticeList() {
           return (
             <li key={n.id}>
               <Link
-                href={`/notices/${n.id}`}
+                href={routes.notice(n.id)}
                 className={cn(
                   'group flex items-start gap-3 rounded-xl border p-4 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
                   correction ? 'border-destructive/30 bg-destructive-soft hover:border-destructive/50' : 'bg-card hover:bg-muted/60',

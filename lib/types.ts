@@ -168,6 +168,8 @@ export interface SingleAnswerRecord {
   explanationOnly: boolean
   correct: boolean | null
   at: string
+  /** 解き直し（意図的な再回答）。新しい回答として記録するが、正答率の集計には含めない */
+  retries?: { choiceId: string; correct: boolean; at: string }[]
 }
 
 export type ReportReason = 'answer' | 'text' | 'explanation' | 'other'

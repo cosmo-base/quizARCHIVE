@@ -20,6 +20,7 @@ import { filterPracticePool, useAppState } from '@/lib/store'
 import type { Question, QuestionDifficulty } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { FilterPanel } from './filter-panel'
+import { routes } from '@/lib/routes'
 
 type Sort = 'default' | 'accuracyAsc' | 'accuracyDesc'
 const sortOptions: { value: Sort; label: string }[] = [
@@ -245,7 +246,7 @@ export function QuestionListView() {
                 {visible.map((q) => (
                   <li key={q.id}>
                     <Link
-                      href={`/questions/${q.id}`}
+                      href={routes.question(q.id)}
                       className="group flex h-full flex-col gap-3 rounded-2xl border bg-card p-5 shadow-xs transition-shadow outline-none hover:border-primary/40 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50"
                     >
                       <QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} />

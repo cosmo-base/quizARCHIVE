@@ -35,16 +35,17 @@ export function DifficultyBadge({ difficulty, className }: { difficulty: Questio
 }
 
 /** 個人レベル。塗りつぶし＋「レベル」表記で問題難易度と区別 */
-export function UserLevelBadge({ level, size = 'md', className }: { level: UserLevel; size?: 'md' | 'lg'; className?: string }) {
+/** compact：狭い画面では「レベル」の文字を視覚的に隠す（読み上げは残す） */
+export function UserLevelBadge({ level, size = 'md', className, compact = false }: { level: UserLevel; size?: 'md' | 'lg'; className?: string; compact?: boolean }) {
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center gap-2 rounded-lg bg-primary font-medium text-primary-foreground',
+        'inline-flex shrink-0 items-center gap-2 rounded-lg bg-primary font-medium whitespace-nowrap text-primary-foreground',
         size === 'lg' ? 'h-10 px-3.5 text-base' : 'h-7 px-2.5 text-xs',
         className,
       )}
     >
-      <span className={cn('opacity-80', size === 'lg' ? 'text-sm' : 'text-[11px]')}>レベル</span>
+      <span className={cn('opacity-80', size === 'lg' ? 'text-sm' : 'text-[11px]', compact && 'max-sm:sr-only')}>レベル</span>
       <span>{levelLabel[level]}</span>
       <RankBars rank={levelRank[level]} />
     </span>

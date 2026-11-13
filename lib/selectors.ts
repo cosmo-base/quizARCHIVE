@@ -75,8 +75,9 @@ export function solvedQuestions(state: AppState): SolvedQuestionRow[] {
   if (!state.demo.emptyHistory) {
     const single = state.singleAnswers[state.sessionUserId ?? 'guest'] ?? {}
     for (const r of Object.values(single)) {
-      if (r.explanationOnly || r.correct === null) continue
-      add(r.questionId, getContent(r.questionId)?.fieldId ?? '', r.correct, r.at)
+      const fieldId = getContent(r.questionId)?.fieldId ?? ''
+      if (!r.explanationOnly && r.correct !== null) add(r.questionId, fieldId, r.correct, r.at)
+      for (const t of r.retries ?? []) add(r.questionId, fieldId, t.correct, t.at)
     }
   }
   return [...rows.values()].sort((a, b) => b.lastAt.localeCompare(a.lastAt))
