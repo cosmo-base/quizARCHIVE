@@ -7,7 +7,7 @@
 
 | 項目 | 決定内容 |
 |---|---|
-| 参加者向け画面 | GitHub Pages で公開（Next.js の静的書き出し）。ゲストは誰でも利用可 |
+| 参加者向け画面 | GitHub Pages で公開（Next.js の静的書き出し）。独自ドメイン cbquiz.archive.fsif.jp の直下。ゲストは誰でも利用可 |
 | バックエンド | Google Apps Script（GAS）の Web アプリ |
 | データベース | Google スプレッドシート |
 | ログイン | Discord ログイン（Cosmo Base の Discord サーバー参加者のみ） |
@@ -18,7 +18,7 @@
 | Google アカウント | 通常の Google アカウント（Workspace ではない）。GAS の上限は通常アカウントの値で見積もる |
 
 ### GitHub Pages 対応（決定：案1）
-- `next.config.mjs` に静的書き出し（`output: 'export'`）と `basePath` を設定する。
+- `next.config.mjs` に静的書き出し（`output: 'export'`）を設定する。公開パス（`basePath`）は環境変数 `PAGES_BASE_PATH` で指定でき、独自ドメインでは空にする。
 - ID を含むページはクエリパラメータで ID を渡す形に変える。
   - 例：`/attempts?id=…`、`/attempts/result?id=…`、`/questions/detail?id=…`、`/notices/detail?id=…`
 - GitHub Actions でビルドして Pages に公開する。

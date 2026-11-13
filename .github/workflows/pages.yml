@@ -31,8 +31,9 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # https://<owner>.github.io/<リポジトリ名>/ で公開するためのパス
-          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+          # 独自ドメイン（cbquiz.archive.fsif.jp）の直下で公開するため、公開パスは空にする。
+          # github.io/<リポジトリ名>/ で公開する場合は /<リポジトリ名> を指定する。
+          PAGES_BASE_PATH: ''
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
