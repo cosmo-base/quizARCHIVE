@@ -1,0 +1,27 @@
+# dependencies / build
+node_modules
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.design-cache/
+.v0-trash/
+.vercel/
+
+# Environment variables
+.env*
+
+# Google Apps Script（GASコードはGitHubに上げない）
+*.gs
+appsscript.json
+.clasp.json
+.clasprc.json
+gas/
+
+.DS_Store
