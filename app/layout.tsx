@@ -1,30 +1,49 @@
+import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { StoreProvider } from '@/lib/store/store'
-import { Toaster } from '@/components/kit/toast'
-import { AppShell } from '@/components/shell/app-shell'
+import { Noto_Sans_JP } from 'next/font/google'
 import './globals.css'
+import { DemoControls } from '@/components/demo/demo-controls'
+
+const notoSansJp = Noto_Sans_JP({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-noto-sans-jp',
+  display: 'swap',
+  preload: false,
+})
 
 export const metadata: Metadata = {
-  title: 'Cosmo Base 毎日宇宙クイズ 過去問（V0モック）',
-  description: 'Cosmo Base 毎日宇宙クイズの過去問を検索・練習・テスト・振り返りできる参加者向けサイトのUIモック',
-  robots: { index: false, follow: false },
+  title: {
+    default: '宇宙クイズ | Cosmo Base',
+    template: '%s | 宇宙クイズ',
+  },
+  description: '気になる問題から、宇宙をもっと知ろう。Cosmo Base の宇宙クイズで練習・テストに挑戦できます。',
+  generator: 'v0.app',
+  icons: {
+    icon: [
+      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#f4f6f9',
+  themeColor: '#f6f7fb',
   width: 'device-width',
   initialScale: 1,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ja" className="bg-background">
-      <body className="antialiased">
-        <StoreProvider>
-          <AppShell>{children}</AppShell>
-          <Toaster />
-        </StoreProvider>
+    <html lang="ja" className={`${notoSansJp.variable} bg-background`}>
+      <body className="min-h-dvh font-sans antialiased">
+        {children}
+        <DemoControls />
+        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
