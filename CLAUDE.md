@@ -29,16 +29,17 @@ Cosmo Base 毎日宇宙クイズの過去問練習サイト（参加者向けUI�
 ```bash
 pnpm install
 pnpm dev            # 開発サーバー（デモ設定ボタンは開発時のみ表示）
-pnpm build          # 本番ビルド
+pnpm build          # 静的書き出し（out/）。GitHub Pages 用は PAGES_BASE_PATH=/quizARCHIVE を付ける
 npx tsc --noEmit    # 型チェック
-npx tsx --test tests/quiz-rules.test.ts   # ロジックの単体テスト
+pnpm test           # ロジックの単体テスト
 ```
 
 ## 構成
 
 - `lib/`：型・仮設定（`config.ts`）・モック問題・出題・採点・認定・統計・ストア
 - `components/`：画面ごとのビュー、共通部品（`quiz/`・`shell/`・`ui/`）、開発用デモ設定（`demo/`）
-- `app/`：ルーティング（`(main)` 配下が通常画面、`attempts/[id]` が回答中画面）
+- `app/`：ルーティング（`(main)` 配下が通常画面、`attempts` が回答中画面）
+- 公開は GitHub Pages（`.github/workflows/pages.yml`、main ブランチへの push で公開）。静的書き出しのため、ID を含む画面はクエリパラメータで ID を渡す（`lib/routes.ts` の関数でURLを作る）
 
 ## 実装上の注意
 
@@ -46,6 +47,7 @@ npx tsx --test tests/quiz-rules.test.ts   # ロジックの単体テスト
 - 回答中は正解をHTMLに出さない。
 - 終了・認定・統計の更新は `finalized` フラグで回ごとに一度だけ行う。
 - 他の利用者の回は表示・操作しない（`isOwnAttempt` で確認する）。
+- 構成・データ・ログインの決定事項は `docs/decisions.md` を参照する。
 - 個人レベルと問題難易度は別の値として扱う。
 - 参加者に見せる正答率は1つだけで、由来（SNS／サイト）は表示しない。
 - 仮の設定値は `lib/config.ts` にまとめ、本番の確定値として扱わない。
