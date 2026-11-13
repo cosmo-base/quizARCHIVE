@@ -11,9 +11,11 @@
 | バックエンド | Google Apps Script（GAS）の Web アプリ |
 | データベース | Google スプレッドシート |
 | ログイン | Discord ログイン（Cosmo Base の Discord サーバー参加者のみ） |
-| 管理画面 | 既存の Quiz Manager に追加（参加者向けサイトには作らない） |
+| 管理画面 | 既存の Quiz Manager（GAS）に追加。参加者向けサイトには作らない。操作できる人の制限などは Quiz Manager 側の開発で扱う |
 | GAS のコード管理 | GAS エディタのみ。団体の Google アカウントで所有し、デプロイの版にメモを付けて管理。GitHub には上げない |
 | テスト環境 | 本番とテストでスプシ・GAS を分けない |
+| GitHub リポジトリ | 公開（GitHub Pages を無料プランで使うため）。秘密情報はコードに入れない |
+| Google アカウント | 通常の Google アカウント（Workspace ではない）。GAS の上限は通常アカウントの値で見積もる |
 
 ### GitHub Pages 対応（決定：案1）
 - `next.config.mjs` に静的書き出し（`output: 'export'`）と `basePath` を設定する。
@@ -22,6 +24,8 @@
 - GitHub Actions でビルドして Pages に公開する。
 
 ## 2. 問題データ（決定）
+
+- 分野はほぼ登録済み。移行元のスプシは後日共有される。
 
 - 元のクイズデータから、必要な情報だけを Archive 用スプシに**一度だけ移行**し、問題IDを付ける。
 - 移行後は元スプシを読まない。出題・表示は Archive 用スプシだけを使う。
