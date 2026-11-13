@@ -2,14 +2,17 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 
-@theme inline {
-  --font-sans: 'Noto Sans JP', 'Noto Sans JP Fallback', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback', ui-monospace, monospace;
+@custom-variant dark (&:is(.dark *));
 
+@theme inline {
+  --font-sans: var(--font-noto-sans-jp), 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -18,93 +21,69 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --color-success: var(--success);
-  --color-success-soft: var(--success-soft);
-  --color-warning: var(--warning);
-  --color-warning-soft: var(--warning-soft);
-  --color-danger: var(--destructive);
-  --color-danger-soft: var(--danger-soft);
-  --color-info-soft: var(--info-soft);
-  --color-brand: var(--brand);
-  --color-lv1: var(--lv1);
-  --color-lv2: var(--lv2);
-  --color-lv3: var(--lv3);
-  --color-lv4: var(--lv4);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 :root {
   color-scheme: light;
-  --background: oklch(0.972 0.005 250);
-  --foreground: oklch(0.27 0.05 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.27 0.05 260);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.27 0.05 260);
-  --primary: oklch(0.29 0.07 266);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.012 255);
-  --secondary-foreground: oklch(0.3 0.05 260);
-  --muted: oklch(0.955 0.006 255);
-  --muted-foreground: oklch(0.5 0.03 260);
-  --accent: oklch(0.95 0.025 255);
-  --accent-foreground: oklch(0.42 0.15 258);
-  --destructive: oklch(0.53 0.19 27);
-  --danger-soft: oklch(0.96 0.03 25);
-  --success: oklch(0.5 0.12 155);
-  --success-soft: oklch(0.96 0.035 155);
-  --warning: oklch(0.55 0.13 65);
-  --warning-soft: oklch(0.965 0.045 85);
-  --info-soft: oklch(0.955 0.03 255);
-  --border: oklch(0.91 0.008 255);
-  --input: oklch(0.88 0.01 255);
-  --ring: oklch(0.52 0.17 258);
-  --radius: 0.5rem;
-  --brand: oklch(0.55 0.17 258);
-  --lv1: oklch(0.86 0.05 258);
-  --lv2: oklch(0.7 0.11 258);
-  --lv3: oklch(0.53 0.18 258);
-  --lv4: oklch(0.29 0.07 266);
-  --sidebar: oklch(0.99 0.002 250);
-  --sidebar-foreground: oklch(0.3 0.05 260);
-  --sidebar-primary: oklch(0.52 0.17 258);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.95 0.025 255);
-  --sidebar-accent-foreground: oklch(0.38 0.12 258);
-  --sidebar-border: oklch(0.91 0.008 255);
-  --sidebar-ring: oklch(0.52 0.17 258);
+  --background: #f6f7fb;
+  --foreground: #17243d;
+  --card: #ffffff;
+  --card-foreground: #17243d;
+  --popover: #ffffff;
+  --popover-foreground: #17243d;
+  --primary: #3858d6;
+  --primary-foreground: #ffffff;
+  --primary-soft: #e9eefc;
+  --secondary: #eef1f7;
+  --secondary-foreground: #17243d;
+  --muted: #eef1f7;
+  --muted-foreground: #56627a;
+  --accent: #e9eefc;
+  --accent-foreground: #17243d;
+  --destructive: #c23a3a;
+  --destructive-soft: #fbecec;
+  --success: #1d7a52;
+  --success-soft: #e6f4ec;
+  --border: #e0e5ef;
+  --input: #d3dae8;
+  --ring: #3858d6;
+  --radius: 0.75rem;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground font-sans;
-  }
-  :focus-visible {
-    outline: 2px solid var(--ring);
-    outline-offset: 2px;
+    font-size: 16px;
+    line-height: 1.7;
   }
 }
 
-.tabular {
-  font-variant-numeric: tabular-nums;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
