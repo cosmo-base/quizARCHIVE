@@ -269,17 +269,9 @@ export function QuestionListView() {
                   >
                     <ChevronLeft aria-hidden="true" />
                   </Button>
-                  {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-                    <Button
-                      key={n}
-                      variant={n === currentPage ? 'default' : 'ghost'}
-                      className="size-11 tabular-nums"
-                      aria-current={n === currentPage ? 'page' : undefined}
-                      onClick={() => setParams({ page: n === 1 ? null : String(n) }, false)}
-                    >
-                      {n}
-                    </Button>
-                  ))}
+                  <p className="min-w-24 text-center text-sm tabular-nums" aria-current="page">
+                    {currentPage} ／ {pageCount} ページ
+                  </p>
                   <Button
                     variant="outline"
                     className="size-11"

@@ -10,7 +10,7 @@ import { PageContainer, PageSkeleton, SurfaceCard } from '@/components/shell/pag
 import { ChoiceList } from '@/components/quiz/choice-list'
 import { QuestionMeta } from '@/components/quiz/question-meta'
 import { LinkButton } from '@/components/link-button'
-import { actions, useAppState } from '@/lib/store'
+import { actions, isOwnAttempt, useAppState } from '@/lib/store'
 import { resolveSnapshot } from '@/lib/stats'
 import { attemptTitle } from '@/lib/labels'
 import { formatClock } from '@/lib/time'
@@ -22,6 +22,7 @@ export function AttemptView({ id }: { id: string }) {
   if (!state) return <PageSkeleton />
   const attempt = state.attempts[id]
   if (!attempt) return <PageContainer><h1>この回が見つかりません</h1><LinkButton href="/">ホームへ</LinkButton></PageContainer>
+  if (!isOwnAttempt(state, attempt)) return <PageContainer><h1>この回は表示できません</h1><p>別の利用者の回です。成績・履歴は本人のみに表示されます。</p><LinkButton href="/">ホームへ</LinkButton></PageContainer>
   return <ActiveAttempt key={id} attempt={attempt} />
 }
 
@@ -89,7 +90,7 @@ function ActiveAttempt({ attempt }: { attempt: Attempt }) {
     <header className="border-b bg-card"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4"><button onClick={() => setConfirm(true)} className="min-h-11 text-left font-bold focus-visible:outline-2 focus-visible:outline-primary">Cosmo Base <span className="text-sm font-normal">宇宙クイズ</span></button><div className="flex items-center gap-3"><span className="text-sm">{attemptTitle(attempt.mode, attempt.testKind)}</span><Button variant="outline" className="h-11" onClick={() => setConfirm(true)}>終了する</Button></div></div></header>
     <main><PageContainer>
       <div className="flex flex-wrap items-center justify-between gap-3"><p className="font-bold">問題 {index + 1} <span className="font-normal text-muted-foreground">／{total}</span></p><div className="flex items-center gap-2"><Clock className="size-4" aria-hidden="true" /><span className="text-sm">{attempt.deadlineAt ? '残り時間' : '経過時間'}</span><span className="font-mono text-xl tabular-nums">{formatClock(seconds)}</span></div></div>
-      <p role="status" className="text-sm text-muted-foreground">{unsaved ? '未保存の回答があります' : '回答を保存しました'}{unsaved && <Button variant="link" onClick={() => save(answersRef.current)}>再試行</Button>}</p>
+      <p role="status" className="text-sm text-muted-foreground">{unsaved ? '未保存の回答があります' : answered > 0 ? '回答を保存しました' : ''}{unsaved && <Button variant="link" onClick={() => save(answersRef.current)}>再試行</Button>}</p>
       <p role="status" className="text-sm text-destructive">{warning}</p>
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_280px]">
         <SurfaceCard className="flex min-w-0 flex-col gap-6"><QuestionMeta questionId={snap.questionId} fieldId={snap.fieldId} difficulty={snap.difficulty} accuracy={snap.displayAccuracy} /><h1 className="text-xl font-bold leading-relaxed text-pretty md:text-2xl">{content.text}</h1><ChoiceList name={`attempt-${snap.questionId}`} legend="回答を選択" choices={content.choices} value={answers[snap.questionId] ?? null} onChange={choose} /><p className="text-sm text-muted-foreground">回答は終了するまで変更できます。答え合わせは最後にまとめて行います。</p></SurfaceCard>

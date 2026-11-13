@@ -62,6 +62,11 @@ export function ownerKeyOf(state: AppState) {
   return state.sessionUserId ?? 'guest'
 }
 
+/** その回が現在の利用者（ゲストはゲスト）のものか。他人の回はID指定でも扱わない */
+export function isOwnAttempt(state: AppState, attempt: Attempt) {
+  return attempt.userId === (state.sessionUserId ?? undefined)
+}
+
 export function currentUser(state: AppState): UserProfile | null {
   return state.sessionUserId ? state.users[state.sessionUserId] ?? null : null
 }
@@ -520,11 +525,13 @@ export const actions = {
   },
 
   /** 履歴の同じセットを練習し直す（復習）。重複は許可、認定なし */
-  startReview(sourceAttemptId: string): StartResult {
+  startReview(sourceAttemptId: string | null, questionIds?: string[]): StartResult {
     return update<StartResult>((s) => {
-      const source = s.attempts[sourceAttemptId]
-      if (!source) return { ok: false, message: '元の回が見つかりません。' }
-      const questions = source.questionSnapshots.map((snap) => buildQuestion(snap.questionId, s.stats)).filter(Boolean) as Question[]
+      const source = sourceAttemptId ? s.attempts[sourceAttemptId] : undefined
+      if (sourceAttemptId && (!source || !isOwnAttempt(s, source))) return { ok: false, message: '元の回が見つかりません。' }
+      const ids = questionIds ?? source?.questionSnapshots.map((snap) => snap.questionId) ?? []
+      const questions = ids.map((id) => buildQuestion(id, s.stats)).filter(Boolean) as Question[]
+      if (questions.length === 0) return { ok: false, message: '練習し直せる問題がありません。' }
       const user = currentUser(s)
       const attempt: Attempt = {
         id: uid('att'),
@@ -539,8 +546,8 @@ export const actions = {
         currentIndex: 0,
         finalized: false,
         statsBucket: 'review',
-        sourceAttemptId,
-        setKey: source.setKey,
+        sourceAttemptId: sourceAttemptId ?? undefined,
+        setKey: toSetKey(questions.map((q) => q.id)),
       }
       s.attempts[attempt.id] = attempt
       return { ok: true, attemptId: attempt.id }
@@ -552,7 +559,7 @@ export const actions = {
     if (getState().demo.saveFailure) throw new Error('save failed')
     update((s) => {
       const a = s.attempts[attemptId]
-      if (!a || a.status !== 'inProgress') return
+      if (!a || a.status !== 'inProgress' || !isOwnAttempt(s, a)) return
       Object.assign(a.answers, answers)
     }, true)
   },
@@ -560,14 +567,14 @@ export const actions = {
   setCurrentIndex(attemptId: string, index: number) {
     update((s) => {
       const a = s.attempts[attemptId]
-      if (a && a.status === 'inProgress') a.currentIndex = index
+      if (a && a.status === 'inProgress' && isOwnAttempt(s, a)) a.currentIndex = index
     })
   },
 
   finalizeAttempt(attemptId: string, status: AttemptStatus, finalAnswers?: Record<string, string | null>) {
     update((s) => {
       const a = s.attempts[attemptId]
-      if (!a || a.finalized) return
+      if (!a || a.finalized || !isOwnAttempt(s, a)) return
       if (finalAnswers) Object.assign(a.answers, finalAnswers)
       if (a.deadlineAt && new Date(a.deadlineAt).getTime() <= Date.now()) status = 'timedOut'
       const finishedAt = status === 'timedOut' && a.deadlineAt ? a.deadlineAt : new Date().toISOString()
@@ -577,7 +584,7 @@ export const actions = {
 
   markResultViewed(attemptId: string) {
     const a = getState().attempts[attemptId]
-    if (!a || a.resultViewed || !a.finalized) return
+    if (!a || a.resultViewed || !a.finalized || !isOwnAttempt(getState(), a)) return
     update((s) => {
       s.attempts[attemptId].resultViewed = true
     })

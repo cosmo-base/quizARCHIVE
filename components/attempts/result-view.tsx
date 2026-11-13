@@ -11,7 +11,7 @@ import { ReportDialog } from '@/components/quiz/report-dialog'
 import { QuestionMeta } from '@/components/quiz/question-meta'
 import { StarRow } from '@/components/quiz/star-row'
 import { LinkButton } from '@/components/link-button'
-import { actions, useAppState } from '@/lib/store'
+import { actions, isOwnAttempt, useAppState } from '@/lib/store'
 import { resolveSnapshot } from '@/lib/stats'
 import { isPassed } from '@/lib/scoring'
 import { attemptTitle, levelLabel } from '@/lib/labels'
@@ -23,9 +23,11 @@ export function ResultView({ id }: { id: string }) {
   const [filter, setFilter] = useState('all')
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
-  const a = state?.attempts[id]
+  const found = state?.attempts[id]
+  const a = found && state && isOwnAttempt(state, found) ? found : undefined
   useEffect(() => { if (a && !a.finalized) router.replace(`/attempts/${id}`); else if (a) actions.markResultViewed(id) }, [a?.finalized, id, router])
   if (!state) return <PageSkeleton />
+  if (found && !a) return <PageContainer><h1>この結果は表示できません</h1><p>別の利用者の回です。成績・履歴は本人のみに表示されます。</p><LinkButton href="/">ホームへ</LinkButton></PageContainer>
   if (!a) return <PageContainer><h1>結果が見つかりません</h1><LinkButton href="/">ホームへ</LinkButton></PageContainer>
   if (!a.analytics) return <PageSkeleton />
   const s = a.analytics

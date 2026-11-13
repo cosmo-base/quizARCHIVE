@@ -43,21 +43,24 @@ export interface SolvedQuestionRow {
   lastCorrect: boolean | null
   lastAt: string
   count: number
+  /** 最新の回答が練習・テスト・復習のときの回ID（単問回答のみなら undefined） */
+  lastAttemptId?: string
 }
 
 /** 解いた問題（最終回答のある問題のみ）。前回＝最新の回答 */
 export function solvedQuestions(state: AppState): SolvedQuestionRow[] {
   const rows = new Map<string, SolvedQuestionRow>()
-  const add = (questionId: string, fieldId: string, correct: boolean, at: string) => {
+  const add = (questionId: string, fieldId: string, correct: boolean, at: string, attemptId?: string) => {
     const prev = rows.get(questionId)
     if (!prev) {
-      rows.set(questionId, { questionId, fieldId, lastCorrect: correct, lastAt: at, count: 1 })
+      rows.set(questionId, { questionId, fieldId, lastCorrect: correct, lastAt: at, count: 1, lastAttemptId: attemptId })
       return
     }
     prev.count += 1
     if (at > prev.lastAt) {
       prev.lastAt = at
       prev.lastCorrect = correct
+      prev.lastAttemptId = attemptId
     }
   }
   for (const a of ownedAttempts(state)) {
@@ -66,7 +69,7 @@ export function solvedQuestions(state: AppState): SolvedQuestionRow[] {
       const answer = a.answers[snap.questionId]
       if (answer === null || answer === undefined) continue
       const v = resolveSnapshot(snap)
-      add(snap.questionId, snap.fieldId, v?.correctChoiceId === answer, a.finishedAt)
+      add(snap.questionId, snap.fieldId, v?.correctChoiceId === answer, a.finishedAt, a.id)
     }
   }
   if (!state.demo.emptyHistory) {
