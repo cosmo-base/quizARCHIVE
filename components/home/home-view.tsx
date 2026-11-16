@@ -115,7 +115,7 @@ export function HomeView() {
 
           {user ? (
             <div className="grid gap-4 md:grid-cols-5">
-              <SurfaceCard aria-labelledby="level-heading" className="flex flex-col gap-4 md:col-span-2">
+              <SurfaceCard aria-labelledby="level-heading" className="flex min-w-0 flex-col gap-4 md:col-span-2">
                 <div className="flex items-center justify-between gap-3">
                   <h2 id="level-heading" className="text-lg font-bold">
                     あなたのレベル
@@ -132,7 +132,7 @@ export function HomeView() {
                 </Link>
               </SurfaceCard>
 
-              <SurfaceCard aria-labelledby="recent-heading" className="flex flex-col gap-4 md:col-span-3">
+              <SurfaceCard aria-labelledby="recent-heading" className="flex min-w-0 flex-col gap-4 md:col-span-3">
                 <h2 id="recent-heading" className="text-lg font-bold">
                   最近の履歴
                 </h2>
