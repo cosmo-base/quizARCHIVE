@@ -1,10 +1,9 @@
 import { Check, Clock, RotateCcw, X } from 'lucide-react'
-import { isPassed } from '@/lib/scoring'
-import type { Attempt } from '@/lib/types'
+import { isPassedSummary, type AttemptSummary } from '@/lib/api/types'
 import { cn } from '@/lib/utils'
 
 /** 合否・完了の小さなラベル。色だけで表さずアイコンと文字を併用 */
-export function AttemptOutcome({ attempt, className }: { attempt: Attempt; className?: string }) {
+export function AttemptOutcome({ attempt, className }: { attempt: Pick<AttemptSummary, 'mode' | 'finalized' | 'analytics'>; className?: string }) {
   const base = 'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold whitespace-nowrap'
   if (!attempt.finalized) {
     return (
@@ -15,7 +14,7 @@ export function AttemptOutcome({ attempt, className }: { attempt: Attempt; class
     )
   }
   if (attempt.mode === 'test') {
-    const passed = isPassed(attempt)
+    const passed = isPassedSummary(attempt)
     return passed ? (
       <span className={cn(base, 'bg-success-soft text-success', className)}>
         <Check aria-hidden="true" className="size-3.5" />

@@ -1,4 +1,4 @@
-import { fieldName } from '@/lib/data/questions'
+import { fieldName } from '@/lib/fields'
 import type { QuestionDifficulty } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { DifficultyBadge } from './badges'

@@ -7,7 +7,9 @@ import { BookOpen, ClipboardCheck, History, Home, LogOut, PencilLine } from 'luc
 import { Button } from '@/components/ui/button'
 import { DemoLoginDialog } from '@/components/quiz/demo-login-dialog'
 import { UserLevelBadge } from '@/components/quiz/badges'
-import { actions, currentUser, useAppState } from '@/lib/store'
+import { logout } from '@/lib/api/client'
+import { useMe } from '@/lib/api/hooks'
+import { useSession } from '@/lib/api/session'
 import { cn } from '@/lib/utils'
 
 export const navItems = [
@@ -34,9 +36,10 @@ export function Wordmark() {
 
 export function SiteHeader() {
   const pathname = usePathname()
-  const state = useAppState()
-  const user = state ? currentUser(state) : null
+  const session = useSession()
+  const { data: me } = useMe()
   const [loginOpen, setLoginOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/85">
@@ -68,14 +71,25 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex min-h-10 items-center gap-2">
-          {!state ? (
+          {session === undefined || (session && !me) ? (
             <span className="h-9 w-24 animate-pulse rounded-lg bg-muted" aria-hidden="true" />
-          ) : user ? (
+          ) : session && me ? (
             <>
+              <span className="hidden max-w-32 truncate text-sm text-muted-foreground lg:inline">{session.displayName}</span>
               <Link href="/progress" className="rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label={`個人レベルを見る`}>
-                <UserLevelBadge level={user.level} compact />
+                <UserLevelBadge level={me.level} compact />
               </Link>
-              <Button variant="ghost" size="icon" className="size-10" aria-label="ログアウト" onClick={() => actions.logout()}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-10"
+                aria-label="ログアウト"
+                disabled={loggingOut}
+                onClick={() => {
+                  setLoggingOut(true)
+                  logout().finally(() => setLoggingOut(false))
+                }}
+              >
                 <LogOut aria-hidden="true" />
               </Button>
             </>

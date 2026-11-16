@@ -1,30 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { CheckCircle2, Flag, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { reportReasonLabel } from '@/lib/labels'
-import { submitReport } from '@/lib/mock-repository'
+import { api, newRequestId } from '@/lib/api/client'
 import type { ReportReason } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 type Phase = 'form' | 'sending' | 'done' | 'failed'
 const reasons = Object.keys(reportReasonLabel) as ReportReason[]
 
-export function ReportDialog({ questionId, versionId, triggerClassName }: { questionId: string; versionId: string; triggerClassName?: string }) {
+export function ReportDialog({ questionId, versionId, attemptId, triggerClassName }: { questionId: string; versionId: string; attemptId?: string; triggerClassName?: string }) {
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState<ReportReason | null>(null)
   const [detail, setDetail] = useState('')
   const [phase, setPhase] = useState<Phase>('form')
   const [touched, setTouched] = useState(false)
+  /** 同じ報告の再送を一度だけ受け付けるための識別子（フォームを開き直すと新しくなる） */
+  const requestId = useRef<string | null>(null)
 
   const detailRequired = reason === 'other'
   const reasonError = touched && !reason
   const detailError = touched && detailRequired && detail.trim().length === 0
 
   const reset = () => {
+    requestId.current = null
     setReason(null)
     setDetail('')
     setPhase('form')
@@ -36,7 +39,8 @@ export function ReportDialog({ questionId, versionId, triggerClassName }: { ques
     if (!reason || (detailRequired && !detail.trim()) || phase === 'sending') return
     setPhase('sending')
     try {
-      await submitReport({ questionId, versionId, reason, detail: detail.trim() })
+      requestId.current ??= newRequestId()
+      await api.reportsCreate({ questionId, versionId, attemptId, reason, detail: detail.trim(), requestId: requestId.current })
       setPhase('done')
     } catch {
       setPhase('failed')

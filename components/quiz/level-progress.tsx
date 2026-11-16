@@ -17,7 +17,7 @@ export function PassDots({ passes, className }: { passes: number; className?: st
   )
 }
 
-export function LevelProgressSummary({ user }: { user: UserProfile }) {
+export function LevelProgressSummary({ user }: { user: Pick<UserProfile, 'level' | 'passesAtCurrentLevel' | 'expertPasses'> }) {
   if (user.level === 'expert') {
     const star = starDisplay(user.expertPasses)
     return (
