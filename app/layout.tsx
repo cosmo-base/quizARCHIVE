@@ -3,6 +3,7 @@ import { Noto_Sans_JP } from 'next/font/google'
 import './globals.css'
 import { Suspense } from 'react'
 import { DemoControls } from '@/components/demo/demo-controls'
+import { ApiRevalidator } from '@/components/api-revalidator'
 
 /** GitHub Pages ではリポジトリ名のパス配下で公開するため、静的ファイルのURLに付ける */
 const basePath = process.env.PAGES_BASE_PATH ?? ''
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ja" className={`${notoSansJp.variable} bg-background`}>
       <body className="min-h-dvh font-sans antialiased">
+        <ApiRevalidator />
         {children}
         <Suspense fallback={null}>
           <DemoControls />

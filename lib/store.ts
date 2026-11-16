@@ -374,6 +374,11 @@ function update<T>(mutator: (draft: AppState) => T, requirePersistence = false):
   return result
 }
 
+/** モックのデータの変更を受け取る（モックのAPIで画面を更新し直すために使う） */
+export function subscribeStore(listener: () => void) {
+  return subscribe(listener)
+}
+
 function subscribe(listener: () => void) {
   listeners.add(listener)
   const onStorage = (e: StorageEvent) => {
