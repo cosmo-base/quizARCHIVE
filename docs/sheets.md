@@ -5,7 +5,8 @@
 
 ## 0. 前提
 
-- 保存先は4つのスプレッドシートに分ける：① 問題 ② 統計 ③ 個人データ ④ 運営。
+- 保存先は**1つのスプレッドシート**とし、① 問題 ② 統計 ③ 個人データ ④ 運営 の各タブを作る。個人データも同じファイルに入るため、共有は管理者に絞る。
+- タブと見出しは、Archive 用スプシに紐づく GAS の「シートを準備」で作る（GAS のコードはリポジトリに含めない）。セルはすべて書式なしテキストにする。
 - 読み書きは GAS（Web アプリ）だけが行う。参加者のブラウザはスプシに直接アクセスしない。
 - 日時は ISO 8601（UTC）で保存し、画面や日付の区切りは日本時間で扱う。
 - 1つのスプレッドシートに入るセルは1,000万個まで。行が増え続けるシート（③の回答など）は、列を必要最小限にする。
@@ -185,4 +186,5 @@
 | notices（お知らせ） | notice_id、kind（訂正／お知らせ）、title、summary、body、question_id、before、after、published_at、ends_at |
 | reports（誤り報告） | report_id、question_id、version_id、attempt_id、reason、detail、owner、created_at、status（受付・対応中・対応済み） |
 | settings（設定値） | key、value、updated_at（合格点、判定の最低件数・間隔など） |
-| sync_log（取り込み記録） | run_at、read_rows、added、updated、unresolved（正解を特定できなかった行など）、message |
+| sync_log（取り込み記録） | run_at、kind（setup／migration／daily）、read_rows、added、updated、unresolved（正解を特定できなかった行の数）、message |
+| import_issues（確認が必要な行） | run_at、source_row（元スプシの行番号）、source_no（番号）、kind（correct_unresolved・conjunction_removed・unknown_field・duplicate_no・invalid_date など）、detail |
