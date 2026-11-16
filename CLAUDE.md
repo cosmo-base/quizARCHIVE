@@ -36,7 +36,10 @@ pnpm test           # ロジックの単体テスト
 
 ## 構成
 
-- `lib/`：型・仮設定（`config.ts`）・モック問題・出題・採点・認定・統計・ストア
+- `lib/api/`：GAS との窓口（`client.ts`）、画面用のデータ取得（`hooks.ts`）、ログイン状態（`session.ts`）、サーバー役のモック（`mock.ts`）。形は `docs/api.md`
+  - 画面は `lib/api/` だけを使い、`lib/store.ts`・`lib/data/questions.ts`（正解入りのモックのデータ）を直接読まない（開発用のデモ設定を除く）
+  - ビルド時に `NEXT_PUBLIC_API_URL`（GAS の URL）を設定すると GAS に送る。未設定ならモックで動く。URL はコードに書かない
+- `lib/`：型・仮設定（`config.ts`）・分野（`fields.ts`）・モック問題・出題・採点・認定・統計・モックのデータ（`store.ts`）
 - `components/`：画面ごとのビュー、共通部品（`quiz/`・`shell/`・`ui/`）、開発用デモ設定（`demo/`）
 - `app/`：ルーティング（`(main)` 配下が通常画面、`attempts` が回答中画面）
 - 公開は GitHub Pages の独自ドメイン https://cbquiz.archive.fsif.jp/（`.github/workflows/pages.yml`、main ブランチへの push で公開）。静的書き出しのため、ID を含む画面はクエリパラメータで ID を渡す（`lib/routes.ts` の関数でURLを作る）

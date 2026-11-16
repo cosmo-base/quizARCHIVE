@@ -72,6 +72,12 @@
 - 結果は GAS の `CacheService` に保存し、取り込みや修正のときに消す。
 - 応答：`{ "questions": [問題の形…], "updatedAt": "…" }`
 
+### `questions.get`
+1問を返す。単問の画面で、自分のこれまでの回答状況もあわせて返す。
+- 送る：`questionId`
+- 返す：`{ "question": 問題の形, "mine": { "choiceId": "B" | null, "correct": true | null, "explanationOnly": false, "retries": [ … ] } | null, "explanation": 解説の形 | null }`
+- `explanation` は、本人が回答済み・解説表示済みのときだけ返す。
+
 ### `notices.list`
 公開中のお知らせ・訂正を返す。
 
@@ -117,6 +123,9 @@
   - 終了後：`{ "status": "completed" | "timedOut", "analytics": { "total": 40, "answered": 38, "correct": 33, "score": 33, "scoreRate": 0.825, "answeredAccuracy": 0.868 | null, "durationSec": 3250 }, "recognition": { … } | null, "questions": [ { 問題の形, "selected": "B", "correct": true, …解説の形 } ] }`
 - 期限を過ぎた回答中の回は、この呼び出しの中で時間切れとして確定してから返す。
 
+### `attempts.inProgress`
+- 返す：本人（ゲストはゲストID）の回答中の回の一覧（要約）。再開の案内に使う。ゲストでも呼べる。
+
 ## 4. 本人の記録（ログイン必須）
 
 ### `me.get`
@@ -161,6 +170,9 @@
 ### `auth.logout`
 - 送る：`token`
 - 処理：そのトークンを無効にする。
+
+### `auth.demoLogin`（V0 のモック専用）
+- デモ用の利用者でログインしたことにする。Discord ログインに置き換えたら使わない。
 
 ### 補足
 - ログイン用トークンの有効期限は30日とする。
