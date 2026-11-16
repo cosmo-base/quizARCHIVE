@@ -2,7 +2,7 @@
 
 import { Checkbox } from '@/components/ui/checkbox'
 import { DifficultyBadge } from '@/components/quiz/badges'
-import { fields } from '@/lib/data/questions'
+import { fields } from '@/lib/fields'
 import { levels } from '@/lib/labels'
 import type { QuestionDifficulty } from '@/lib/types'
 

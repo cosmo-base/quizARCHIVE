@@ -4,13 +4,16 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { LinkButton } from '@/components/link-button'
 import { PageContainer } from '@/components/shell/page'
 import { useIdFromQuery } from '@/components/id-from-query'
-import { getNotice } from '@/lib/data/notices'
+import { useNotices } from '@/lib/api/hooks'
+import { PageSkeleton } from '@/components/shell/page'
 import { routes } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
 
 export function NoticeDetailViewFromQuery() {
   const id = useIdFromQuery()
-  const notice = getNotice(id)
+  const { data: notices, error } = useNotices()
+  if (!notices && !error) return <PageSkeleton />
+  const notice = notices?.find((n) => n.id === id)
   if (!notice) {
     return (
       <PageContainer narrow>

@@ -10,7 +10,10 @@ import { FilterPanel } from '@/components/questions/filter-panel'
 import { ResumeBanner } from '@/components/quiz/resume-banner'
 import { mockConfig } from '@/lib/config'
 import { levelLabel, levels } from '@/lib/labels'
-import { actions, currentUser, filterPracticePool, getAllQuestions, useAppState } from '@/lib/store'
+import { api } from '@/lib/api/client'
+import { useMe, useQuestionsIndex } from '@/lib/api/hooks'
+import { useSession } from '@/lib/api/session'
+import { filterPracticePool } from '@/lib/filter'
 import { formatDuration } from '@/lib/time'
 import type { QuestionDifficulty } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -21,7 +24,9 @@ function parseList(v: string | null) {
 }
 
 export function PracticeSetupView() {
-  const state = useAppState()
+  const session = useSession()
+  const { data: questions, error: loadError, mutate } = useQuestionsIndex()
+  const { data: user } = useMe()
   const params = useSearchParams()
   const router = useRouter()
   const [fieldIds, setFieldIds] = useState<string[]>(() => parseList(params.get('field')))
@@ -34,10 +39,20 @@ export function PracticeSetupView() {
   const [error, setError] = useState<string | null>(null)
   const [starting, setStarting] = useState(false)
 
-  if (!state) return <PageSkeleton />
+  if (loadError) {
+    return (
+      <PageContainer narrow>
+        <PageHeading title="練習する" />
+        <div role="alert" className="flex flex-col items-start gap-3 rounded-2xl border bg-card p-6">
+          <p className="font-bold">問題を読み込めませんでした</p>
+          <Button variant="outline" className="h-11" onClick={() => mutate()}>再読み込み</Button>
+        </div>
+      </PageContainer>
+    )
+  }
+  if (!questions || session === undefined || (session && user === undefined)) return <PageSkeleton />
 
-  const user = currentUser(state)
-  const pool = filterPracticePool(getAllQuestions(state), { fieldIds, difficulties, keyword })
+  const pool = filterPracticePool(questions, { fieldIds, difficulties, keyword })
   const short = pool.length < count
   const pace = user ? mockConfig.practice.paceSecondsPerQuestion[user.level] : null
 
@@ -45,19 +60,19 @@ export function PracticeSetupView() {
     if (starting) return
     setStarting(true)
     setError(null)
-    const result = actions.startPractice({ count, fieldIds, difficulties, timeLimitMinutes: timeLimit, keyword: keyword || undefined })
-    if (result.ok) {
-      router.push(routes.attempt(result.attemptId))
-    } else {
-      setError(result.message)
-      setStarting(false)
-    }
+    api
+      .attemptsStart({ mode: 'practice', settings: { count, fieldIds, difficulties, timeLimitMinutes: timeLimit, keyword: keyword || undefined } })
+      .then((a) => router.push(routes.attempt(a.id)))
+      .catch((e: Error) => {
+        setError(e.message)
+        setStarting(false)
+      })
   }
 
   return (
     <PageContainer narrow>
       <PageHeading title="練習する" description="分野・難易度・問題数を選んで、自分のペースで解けます。練習ではレベルは変わりません。" />
-      <ResumeBanner state={state} mode="practice" />
+      <ResumeBanner mode="practice" />
 
       <form
         className="flex flex-col gap-5"

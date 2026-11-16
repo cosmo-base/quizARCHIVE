@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { LinkButton } from '@/components/link-button'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useMemo, useState } from 'react'
-import useSWR from 'swr'
 import { ArrowRight, ChevronLeft, ChevronRight, PencilLine, RefreshCw, Search, SlidersHorizontal, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,11 +12,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { PageContainer, PageHeading } from '@/components/shell/page'
 import { QuestionMeta } from '@/components/quiz/question-meta'
 import { mockConfig } from '@/lib/config'
-import { fieldName } from '@/lib/data/questions'
+import { fieldName } from '@/lib/fields'
 import { levelLabel, levels } from '@/lib/labels'
-import { fetchQuestions } from '@/lib/mock-repository'
-import { filterPracticePool, useAppState } from '@/lib/store'
-import type { Question, QuestionDifficulty } from '@/lib/types'
+import { useQuestionsIndex } from '@/lib/api/hooks'
+import type { PublicQuestion } from '@/lib/api/types'
+import { filterPracticePool } from '@/lib/filter'
+import type { QuestionDifficulty } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { FilterPanel } from './filter-panel'
 import { routes } from '@/lib/routes'
@@ -33,7 +33,7 @@ function parseList(v: string | null) {
   return v ? v.split(',').filter(Boolean) : []
 }
 
-function sortQuestions(list: Question[], sort: Sort) {
+function sortQuestions(list: PublicQuestion[], sort: Sort) {
   if (sort === 'default') return list
   // 未集計は常に最後
   return [...list].sort((a, b) => {
@@ -45,7 +45,6 @@ function sortQuestions(list: Question[], sort: Sort) {
 }
 
 export function QuestionListView() {
-  const state = useAppState()
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
@@ -57,10 +56,7 @@ export function QuestionListView() {
   const sort = (params.get('sort') as Sort) || 'default'
   const page = Math.max(1, Number(params.get('page')) || 1)
 
-  const { data, error, isLoading, mutate } = useSWR(state ? ['questions', state.statsRevision] : null, () => fetchQuestions(), {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data, error, isLoading, mutate } = useQuestionsIndex()
 
   const [draftKeyword, setDraftKeyword] = useState(keyword)
 

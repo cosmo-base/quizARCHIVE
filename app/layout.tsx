@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_JP } from 'next/font/google'
 import './globals.css'
 import { Suspense } from 'react'
-import { DemoControls } from '@/components/demo/demo-controls'
+import { DemoControlsLoader } from '@/components/demo/demo-controls-loader'
 import { ApiRevalidator } from '@/components/api-revalidator'
 
 /** GitHub Pages ではリポジトリ名のパス配下で公開するため、静的ファイルのURLに付ける */
@@ -48,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <ApiRevalidator />
         {children}
         <Suspense fallback={null}>
-          <DemoControls />
+          <DemoControlsLoader />
         </Suspense>
       </body>
     </html>

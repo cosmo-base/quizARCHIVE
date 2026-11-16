@@ -2,8 +2,7 @@
 
 import { LinkButton } from '@/components/link-button'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import useSWR from 'swr'
+import { useRef, useState } from 'react'
 import { ArrowLeft, CheckCircle2, Eye, Loader2, RefreshCw, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,8 +12,9 @@ import { ExplanationBlock } from '@/components/quiz/explanation-block'
 import { QuestionMeta } from '@/components/quiz/question-meta'
 import { ReportDialog } from '@/components/quiz/report-dialog'
 import { mockConfig } from '@/lib/config'
-import { fetchQuestion } from '@/lib/mock-repository'
-import { actions, ownerKeyOf, useAppState } from '@/lib/store'
+import { api, newRequestId } from '@/lib/api/client'
+import { useQuestionDetail } from '@/lib/api/hooks'
+import { ApiError } from '@/lib/api/types'
 import { cn } from '@/lib/utils'
 import { useIdFromQuery } from '@/components/id-from-query'
 
@@ -23,13 +23,12 @@ export function QuestionDetailViewFromQuery() {
 }
 
 export function QuestionDetailView({ id }: { id: string }) {
-  const state = useAppState()
   const router = useRouter()
-  const { data: q, error, mutate } = useSWR(state ? ['question', id, state.statsRevision] : null, () => fetchQuestion(id), {
-    keepPreviousData: true,
-    revalidateOnFocus: false,
-  })
+  const { data: detail, error, mutate } = useQuestionDetail(id)
   const [selected, setSelected] = useState<string | null>(null)
+  const [actionError, setActionError] = useState('')
+  /** 同じ回答の再送を一度だけ数えるための識別子（意図的な再回答は新しい値） */
+  const eventId = useRef<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [selfCheck, setSelfCheck] = useState<string | null>(null)
   /** 解き直し中の選択（null＝解き直していない）と、その結果 */
@@ -47,7 +46,7 @@ export function QuestionDetailView({ id }: { id: string }) {
     </Button>
   )
 
-  if (error) {
+  if (error && !(error instanceof ApiError && error.code === 'NOT_FOUND')) {
     return (
       <PageContainer narrow>
         {backButton}
@@ -62,7 +61,7 @@ export function QuestionDetailView({ id }: { id: string }) {
     )
   }
 
-  if (!state || q === undefined) {
+  if (!detail && !error) {
     return (
       <PageContainer narrow>
         <Skeleton className="h-11 w-32" />
@@ -71,7 +70,7 @@ export function QuestionDetailView({ id }: { id: string }) {
     )
   }
 
-  if (q === null) {
+  if (!detail) {
     return (
       <PageContainer narrow>
         <div className="flex flex-col items-center gap-4 rounded-2xl border bg-card px-6 py-12 text-center">
@@ -82,27 +81,53 @@ export function QuestionDetailView({ id }: { id: string }) {
     )
   }
 
-  const record = state.singleAnswers[ownerKeyOf(state)]?.[q.id]
+  const q = detail.question
+  const record = detail.mine
+  const exp = detail.explanation
   const answered = Boolean(record && !record.explanationOnly)
   const explanationOnly = Boolean(record?.explanationOnly)
-  const revealed = answered || explanationOnly
+  const revealed = Boolean(exp) && (answered || explanationOnly)
+
+  const fail = (e: unknown) => setActionError(e instanceof Error ? e.message : '通信に失敗しました。もう一度お試しください。')
 
   const submit = () => {
     if (!selected || submitting || record) return
     setSubmitting(true)
-    window.setTimeout(() => {
-      actions.answerSingle(q.id, selected)
-      setSubmitting(false)
-    }, mockConfig.attempt.saveDelayMs)
+    setActionError('')
+    eventId.current ??= newRequestId()
+    api
+      .singleAnswer({ questionId: q.id, versionId: q.versionId, choiceId: selected, eventId: eventId.current, kind: 'answer' })
+      .then(() => mutate())
+      .catch(fail)
+      .finally(() => setSubmitting(false))
+  }
+
+  const showExplanationOnly = () => {
+    if (submitting) return
+    setSubmitting(true)
+    setActionError('')
+    api
+      .singleExplanation({ questionId: q.id, versionId: q.versionId })
+      .then(() => mutate())
+      .catch(fail)
+      .finally(() => setSubmitting(false))
   }
 
   const retrying = retry !== null && retry.result === null
   const retryDone = retry !== null && retry.result !== null
   const choiceValue = retry ? retry.choiceId : answered ? record!.choiceId : explanationOnly ? selfCheck : selected
   const submitRetry = () => {
-    if (!retry?.choiceId || retry.result !== null) return
-    actions.retrySingle(q.id, retry.choiceId)
-    setRetry({ ...retry, result: retry.choiceId === q.correctChoiceId })
+    if (!retry?.choiceId || retry.result !== null || submitting) return
+    setSubmitting(true)
+    setActionError('')
+    api
+      .singleAnswer({ questionId: q.id, versionId: q.versionId, choiceId: retry.choiceId, eventId: newRequestId(), kind: 'retry' })
+      .then((r) => {
+        setRetry({ ...retry, result: r.correct })
+        return mutate()
+      })
+      .catch(fail)
+      .finally(() => setSubmitting(false))
   }
 
   return (
@@ -121,7 +146,7 @@ export function QuestionDetailView({ id }: { id: string }) {
           value={choiceValue}
           onChange={retrying ? (c) => setRetry({ choiceId: c, result: null }) : explanationOnly ? setSelfCheck : setSelected}
           disabled={retrying ? false : answered || submitting}
-          reveal={retrying ? undefined : answered || (explanationOnly && selfCheck) ? { correctChoiceId: q.correctChoiceId } : undefined}
+          reveal={retrying || !exp ? undefined : answered || (explanationOnly && selfCheck) ? { correctChoiceId: exp.correctChoiceId } : undefined}
         />
 
         {!revealed && (
@@ -131,7 +156,7 @@ export function QuestionDetailView({ id }: { id: string }) {
               {submitting ? '確定しています…' : '回答する'}
             </Button>
             {mockConfig.singleQuestion.allowExplanationOnly && (
-              <Button variant="ghost" className="h-11 text-muted-foreground" disabled={submitting} onClick={() => actions.viewExplanationOnly(q.id)}>
+              <Button variant="ghost" className="h-11 text-muted-foreground" disabled={submitting} onClick={showExplanationOnly}>
                 <Eye aria-hidden="true" />
                 回答せずに解説を見る
               </Button>
@@ -141,7 +166,7 @@ export function QuestionDetailView({ id }: { id: string }) {
 
         {retrying && (
           <div className="flex flex-col gap-3">
-            <Button className="h-12 text-base" disabled={!retry?.choiceId} onClick={submitRetry}>
+            <Button className="h-12 text-base" disabled={!retry?.choiceId || submitting} onClick={submitRetry}>
               解き直しの回答をする
             </Button>
             <Button variant="ghost" className="h-11 text-muted-foreground" onClick={() => setRetry(null)}>
@@ -166,7 +191,8 @@ export function QuestionDetailView({ id }: { id: string }) {
               解説を先に見たため、この問題の回答は正答率に含まれません。選択肢を選ぶと正解を確認できます。
             </p>
           )}
-          {revealed && !retrying && <ExplanationBlock explanation={q.explanation} references={q.references} />}
+          {revealed && !retrying && exp && <ExplanationBlock explanation={exp.explanation} references={exp.references} />}
+          {actionError && <p role="alert" className="text-sm text-destructive">{actionError}</p>}
         </div>
 
         <footer className="flex flex-wrap items-center justify-between gap-2 border-t pt-4">

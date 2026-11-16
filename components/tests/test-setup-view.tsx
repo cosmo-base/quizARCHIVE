@@ -12,15 +12,22 @@ import { ResumeBanner } from '@/components/quiz/resume-banner'
 import { testCompositions } from '@/lib/config'
 import { testKindLabel, testKindTarget } from '@/lib/labels'
 import { eligibleTestKind } from '@/lib/recognition'
-import { actions, currentUser, useAppState } from '@/lib/store'
-import type { Question, TestKind } from '@/lib/types'
+import { api, loginDemo } from '@/lib/api/client'
+import { useMe } from '@/lib/api/hooks'
+import { useSession } from '@/lib/api/session'
+import type { TestKind } from '@/lib/types'
 import { routes } from '@/lib/routes'
 
 export function TestSetupView() {
-  const state = useAppState()
+  const session = useSession()
+  const { data: me } = useMe()
   const router = useRouter()
   const [guestPrompt, setGuestPrompt] = useState(false)
-  const [prepared, setPrepared] = useState<{ kind: TestKind; questions: Question[]; adjusted: boolean } | null>(null)
+  /** 開始前の確認で選んでいる種類。問題は「開始」のときにサーバーが選ぶ */
+  const [prepared, setPrepared] = useState<{ kind: TestKind } | null>(null)
+  const [loggingIn, setLoggingIn] = useState(false)
+  const ready = session !== undefined && (!session || me !== undefined)
+  const user = session ? (me ?? null) : null
   const [error, setError] = useState('')
   const [starting, setStarting] = useState(false)
   const params = useSearchParams()
@@ -28,32 +35,34 @@ export function TestSetupView() {
   // 結果画面の「同じ条件で新しく挑戦」から来た場合（?kind=）、その種類の開始前確認を一度だけ開く
   useEffect(() => {
     const kind = params.get('kind') as TestKind | null
-    if (!state || autoOpened.current || !kind || !(kind in testKindLabel)) return
+    if (!ready || autoOpened.current || !kind || !(kind in testKindLabel)) return
     autoOpened.current = true
-    const u = currentUser(state)
-    if (u && eligibleTestKind(u.level) !== kind) { setError('現在のレベルでは、このテストは開始できません。受験できるテストを選んでください。'); return }
+    if (user && eligibleTestKind(user.level) !== kind) { setError('現在のレベルでは、このテストは開始できません。受験できるテストを選んでください。'); return }
     prepare(kind)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, params])
-  if (!state) return <PageSkeleton />
-  const user = currentUser(state)
+  }, [ready, params])
+  if (!ready) return <PageSkeleton />
   function prepare(kind: TestKind) {
     setError('')
-    const result = actions.prepareTest(kind)
-    if (!result.ok) { setError(result.message); return }
-    setPrepared({ kind, questions: result.questions, adjusted: result.adjusted })
-    if (!(state && currentUser(state))) setGuestPrompt(true)
+    setPrepared({ kind })
+    if (!user) setGuestPrompt(true)
   }
   const start = () => {
     if (!prepared || starting) return
     setStarting(true)
-    const result = actions.startTest(prepared.kind, prepared.questions, prepared)
-    if (result.ok) router.push(routes.attempt(result.attemptId))
-    else { setError(result.message); setStarting(false); setPrepared(null) }
+    // 資格の確認・出題・期限の決定はサーバー側で行う
+    api
+      .attemptsStart({ mode: 'test', testKind: prepared.kind })
+      .then((a) => router.push(routes.attempt(a.id)))
+      .catch((e: Error) => {
+        setError(e.message)
+        setStarting(false)
+        setPrepared(null)
+      })
   }
   return <PageContainer>
     <PageHeading title="テストに挑戦" description="学んだことを確かめて、次のレベルへ。一歩ずつ、宇宙に詳しくなろう。" />
-    <ResumeBanner state={state} mode="test" />
+    <ResumeBanner mode="test" />
     <SurfaceCard className="flex flex-col gap-5">
       <h2 className="flex items-center gap-2 text-lg font-bold"><ShieldCheck className="size-5 text-primary" aria-hidden="true" />テストのルール</h2>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">{['40問', '60分', '32問以上で合格', '累計3回で昇格'].map(t => <p key={t} className="rounded-xl bg-muted p-4 text-center font-bold">{t}</p>)}</div>
@@ -77,14 +86,25 @@ export function TestSetupView() {
         <DialogDescription>ログインすると、合格実績・レベル・星を保存できます。</DialogDescription>
         <p className="text-sm leading-relaxed">ログインせずに受けたテストは、後からログインしても認定実績に反映されません。</p>
         <p className="text-sm text-muted-foreground">デモユーザーでログインします。個人情報の入力は不要です。</p>
-        <Button className="h-12" onClick={() => { actions.login(); setGuestPrompt(false); setPrepared(null); setError('ログインしました。現在の資格に合ったテストを選んでください。') }}>ログインする</Button>
+        <Button
+          className="h-12"
+          disabled={loggingIn}
+          onClick={() => {
+            setLoggingIn(true)
+            loginDemo()
+              .then(() => { setGuestPrompt(false); setPrepared(null); setError('ログインしました。現在の資格に合ったテストを選んでください。') })
+              .catch(() => setError('ログインできませんでした。もう一度お試しください。'))
+              .finally(() => setLoggingIn(false))
+          }}
+        >
+          {loggingIn ? 'ログインしています…' : 'ログインする'}
+        </Button>
       </DialogContent>
     </Dialog>
     <Dialog open={Boolean(prepared) && !guestPrompt} onOpenChange={open => { if (!open && !starting) setPrepared(null) }}>
       <DialogContent className="sm:max-w-md">
         <DialogTitle>{prepared ? testKindLabel[prepared.kind] : '開始前の確認'}</DialogTitle>
         <DialogDescription>40問・60分。開始後は回答を変更できます。答え合わせは最後にまとめて行います。</DialogDescription>
-        {prepared?.adjusted && <p className="rounded-lg bg-muted p-3">分野を均等にするため、問題難易度の構成を調整しました。</p>}
         <p>{user ? '今回のテストは認定対象です。' : '今回は認定対象外です。'}</p>
         <Button className="h-12" disabled={starting} onClick={start}>{starting ? '開始しています…' : 'テストを開始'}</Button>
       </DialogContent>

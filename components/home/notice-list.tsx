@@ -1,11 +1,15 @@
+'use client'
+
 import Link from 'next/link'
 import { ChevronRight, Info, TriangleAlert } from 'lucide-react'
-import { notices } from '@/lib/data/notices'
+import { useNotices } from '@/lib/api/hooks'
 import { formatDate } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { routes } from '@/lib/routes'
 
 export function NoticeList() {
+  const { data: notices } = useNotices()
+  if (!notices || notices.length === 0) return null
   return (
     <section aria-labelledby="notices-heading" className="flex flex-col gap-2">
       <h2 id="notices-heading" className="text-sm font-medium text-muted-foreground">

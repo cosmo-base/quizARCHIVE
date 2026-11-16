@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { LinkButton } from '@/components/link-button'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ArrowRight, BookOpen, ClipboardCheck, Clock, PencilLine, PlayCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,8 +10,9 @@ import { DemoLoginDialog } from '@/components/quiz/demo-login-dialog'
 import { LevelProgressSummary } from '@/components/quiz/level-progress'
 import { PageContainer, SurfaceCard } from '@/components/shell/page'
 import { attemptTitle } from '@/lib/labels'
-import { attemptSettingsSummary, inProgressAttempts, isExpired, ownedAttempts } from '@/lib/selectors'
-import { actions, currentUser, useAppState } from '@/lib/store'
+import { attemptSettingsSummary } from '@/lib/attempt-summary'
+import { useHistory, useInProgress, useMe } from '@/lib/api/hooks'
+import { useSession } from '@/lib/api/session'
 import { formatDateTime } from '@/lib/time'
 import { Skeleton } from '@/components/ui/skeleton'
 import { NoticeList } from './notice-list'
@@ -21,12 +21,14 @@ import { AttemptOutcome } from '@/components/history/attempt-outcome'
 import { routes } from '@/lib/routes'
 
 export function HomeView() {
-  const state = useAppState()
-  const router = useRouter()
+  const session = useSession()
+  const { data: user } = useMe()
+  const { data: inProgress } = useInProgress()
+  const { data: history } = useHistory()
   const [loginOpen, setLoginOpen] = useState(false)
-  const user = state ? currentUser(state) : null
-  const resumable = state ? inProgressAttempts(state) : []
-  const recent = state && user ? ownedAttempts(state).filter((a) => a.finalized).slice(0, 3) : []
+  const resumable = inProgress ?? []
+  const recent = (history ?? []).filter((a) => a.finalized).slice(0, 3)
+  const loading = session === undefined || inProgress === undefined || (session && (user === undefined || history === undefined))
 
   return (
     <PageContainer className="gap-8">
@@ -61,7 +63,7 @@ export function HomeView() {
         </div>
       </section>
 
-      {!state ? (
+      {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
           <Skeleton className="h-44 rounded-2xl" />
           <Skeleton className="h-44 rounded-2xl" />
@@ -75,15 +77,14 @@ export function HomeView() {
               </h2>
               <ul className="grid gap-3 md:grid-cols-2">
                 {resumable.map((a) => {
-                  const expired = isExpired(a)
-                  const answered = Object.values(a.answers).filter((v) => v !== null).length
+                  const expired = Boolean(a.deadlineAt && new Date(a.deadlineAt).getTime() <= Date.now())
                   return (
                     <li key={a.id}>
                       <SurfaceCard as="div" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex min-w-0 flex-col gap-1">
                           <p className="font-bold">{attemptTitle(a.mode, a.testKind)}</p>
                           <p className="text-sm text-muted-foreground">
-                            {`${formatDateTime(a.startedAt)} 開始・${answered}／${a.questionSnapshots.length}問回答済み`}
+                            {`${formatDateTime(a.startedAt)} 開始・${a.answeredCount}／${a.questionCount}問回答済み`}
                           </p>
                           {expired && (
                             <p className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -93,17 +94,11 @@ export function HomeView() {
                           )}
                         </div>
                         {expired ? (
-                          <Button
-                            variant="outline"
-                            className="h-11 shrink-0"
-                            onClick={() => {
-                              actions.finalizeAttempt(a.id, 'timedOut')
-                              router.push(routes.result(a.id))
-                            }}
-                          >
+                          // 結果画面を開くと、サーバー側で期限時点の内容で確定する
+                          <LinkButton href={routes.result(a.id)} variant="outline" className="h-11 shrink-0">
                             結果を見る
                             <ArrowRight aria-hidden="true" />
-                          </Button>
+                          </LinkButton>
                         ) : (
                           <LinkButton href={routes.attempt(a.id)} className="h-11 shrink-0">
                               <PlayCircle aria-hidden="true" />
@@ -161,7 +156,7 @@ export function HomeView() {
                             </span>
                           </span>
                           <span className="flex shrink-0 items-center gap-3">
-                            <span className="font-bold tabular-nums">{`${a.analytics?.correctCount ?? 0}／${a.questionSnapshots.length}`}</span>
+                            <span className="font-bold tabular-nums">{`${a.analytics?.correctCount ?? 0}／${a.questionCount}`}</span>
                             <AttemptOutcome attempt={a} />
                           </span>
                         </Link>

@@ -1,14 +1,7 @@
-import type { Field, QuestionContent, QuestionDifficulty, QuestionStats, Reference } from '../types'
+import type { QuestionContent, QuestionDifficulty, QuestionStats, Reference } from '../types'
+import { fieldName, fields } from '../fields'
 
-/** モック用の仮分類 */
-export const fields: Field[] = [
-  { id: 'solar', name: '太陽系' },
-  { id: 'stars', name: '恒星と銀河' },
-  { id: 'exploration', name: '宇宙開発・探査' },
-  { id: 'observation', name: '星空と観測' },
-  { id: 'physics', name: '宇宙のしくみ' },
-  { id: 'life', name: '宇宙と暮らし' },
-]
+export { fieldName, fields }
 
 const ref = {
   naoj: { title: '国立天文台', publisher: '国立天文台', url: 'https://www.nao.ac.jp/' },
@@ -267,6 +260,4 @@ export function getVersion(versionId: string) {
   return versionById.get(versionId)
 }
 
-export function fieldName(id: string) {
-  return fields.find((f) => f.id === id)?.name ?? id
-}
+

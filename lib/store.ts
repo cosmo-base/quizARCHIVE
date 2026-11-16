@@ -8,6 +8,8 @@ import { applyRecognition, eligibleTestKind } from './recognition'
 import { isPassed, scoreAttempt } from './scoring'
 import { applyAnswerToStats, buildAllQuestions, buildQuestion, resolveSnapshot, toSnapshot } from './stats'
 import { jstDateKey } from './time'
+import { filterPracticePool } from './filter'
+export { filterPracticePool }
 import type {
   Attempt,
   AttemptStatus,
@@ -425,15 +427,6 @@ function recordSet(state: AppState, setKey: string) {
   state.setHistory.push({ ownerKey: ownerKeyOf(state), setKey, jstDate: today, createdAt: new Date().toISOString() })
 }
 
-export function filterPracticePool(questions: Question[], settings: Pick<PracticeSettings, 'fieldIds' | 'difficulties' | 'keyword'>) {
-  const kw = settings.keyword?.trim()
-  return questions.filter(
-    (q) =>
-      (settings.fieldIds.length === 0 || settings.fieldIds.includes(q.fieldId)) &&
-      (settings.difficulties.length === 0 || settings.difficulties.includes(q.difficulty)) &&
-      (!kw || q.text.includes(kw)),
-  )
-}
 
 /* ---------- アクション ---------- */
 

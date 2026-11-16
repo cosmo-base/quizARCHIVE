@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import useSWR, { useSWRConfig } from 'swr'
-import { api, isMockApi } from './client'
+import { api } from './client'
 import { useSession } from './session'
 
 /**
@@ -18,7 +18,8 @@ function who(session: ReturnType<typeof useSession>) {
 export function useMockRevalidation() {
   const { mutate } = useSWRConfig()
   useEffect(() => {
-    if (!isMockApi) return
+    // ビルド時に GAS の URL が設定されていれば、この処理（とモックのデータ）は配信ファイルに含まれない
+    if (process.env.NEXT_PUBLIC_API_URL) return
     let unsubscribe: (() => void) | undefined
     let timer: ReturnType<typeof setTimeout> | undefined
     let cancelled = false
