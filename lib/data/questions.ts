@@ -1,7 +1,20 @@
-import type { QuestionContent, QuestionDifficulty, QuestionStats, Reference } from '../types'
+import type { Level, QuestionContent, QuestionStats, Reference } from '../types'
 import { fieldName, fields } from '../fields'
 
 export { fieldName, fields }
+
+/** モック問題の分野（仮分類）。旧の仮分類から7分野へ振り分ける。各分野6問以上になるようにしている */
+const mockFieldById: Record<string, string> = {
+  ...Object.fromEntries(['Q-031', 'Q-033', 'Q-034', 'Q-036', 'Q-045', 'Q-080'].map((id) => [id, 'history'])),
+  ...Object.fromEntries(['Q-035', 'Q-037', 'Q-038', 'Q-039', 'Q-040', 'Q-041', 'Q-042'].map((id) => [id, 'exploration'])),
+  ...Object.fromEntries(['Q-043', 'Q-044', 'Q-076', 'Q-079', 'Q-083', 'Q-089'].map((id) => [id, 'development'])),
+  ...Object.fromEntries(['Q-077', 'Q-078', 'Q-081', 'Q-082', 'Q-084', 'Q-090'].map((id) => [id, 'business'])),
+  ...Object.fromEntries(['Q-032', 'Q-066', 'Q-085', 'Q-086', 'Q-087', 'Q-088'].map((id) => [id, 'policy'])),
+}
+const mockFieldByOld: Record<string, string> = { solar: 'astronomy', stars: 'astronomy', observation: 'basics', physics: 'basics' }
+function mockField(id: string, oldField: string) {
+  return mockFieldById[id] ?? mockFieldByOld[oldField] ?? 'basics'
+}
 
 const ref = {
   naoj: { title: '国立天文台', publisher: '国立天文台', url: 'https://www.nao.ac.jp/' },
@@ -17,7 +30,7 @@ const ref = {
 interface Seed {
   id: string
   fieldId: string
-  target: QuestionDifficulty
+  target: Level
   text: string
   choices: string[]
   correct: number
@@ -133,7 +146,7 @@ const seeds: Seed[] = [
 /** 版修正の例：Q-021 は v1 の正解設定を訂正した v2 が現行版 */
 const correctedQuestion: QuestionContent = {
   id: 'Q-021',
-  fieldId: 'stars',
+  fieldId: 'astronomy',
   snsAccuracy: 0.44,
   current: {
     versionId: 'Q-021-v2',
@@ -173,7 +186,7 @@ function hash(input: string) {
   return (h >>> 0) / 4294967295
 }
 
-const accuracyRange: Record<QuestionDifficulty, [number, number]> = {
+const accuracyRange: Record<Level, [number, number]> = {
   beginner: [0.56, 0.86],
   intermediate: [0.32, 0.49],
   advanced: [0.12, 0.29],
@@ -183,7 +196,7 @@ const accuracyRange: Record<QuestionDifficulty, [number, number]> = {
 export const questionContents: QuestionContent[] = [
   ...seeds.map<QuestionContent>((s) => ({
     id: s.id,
-    fieldId: s.fieldId,
+    fieldId: mockField(s.id, s.fieldId),
     snsAccuracy: s.id === 'Q-018' ? undefined : Math.round((accuracyRange[s.target][0] + hash(`${s.id}sns`) * 0.25) * 100) / 100,
     current: {
       versionId: `${s.id}-v1`,

@@ -1,11 +1,11 @@
 import { mockConfig } from './config'
 import { getContent, getVersion, questionContents } from './data/questions'
-import type { Question, QuestionDifficulty, QuestionSnapshot, QuestionStats, StatsBucket } from './types'
+import type { Level, Question, QuestionDifficulty, QuestionSnapshot, QuestionStats, StatsBucket } from './types'
 
 const { minBasicAnswers, rejudgeInterval, thresholds } = mockConfig.difficulty
 
 /** 正答率から問題難易度を判定（80%はテスト合格基準であり、ここでは使わない） */
-export function classifyAccuracy(accuracy: number): QuestionDifficulty {
+export function classifyAccuracy(accuracy: number): Level {
   if (accuracy > thresholds.beginner) return 'beginner'
   if (accuracy > thresholds.intermediate) return 'intermediate'
   if (accuracy > thresholds.advanced) return 'advanced'
@@ -20,13 +20,15 @@ export function emptyStats(versionId: string): QuestionStats {
 export function deriveDisplay(stats: QuestionStats, snsAccuracy?: number) {
   if (stats.basicAnswerCount < minBasicAnswers) {
     if (stats.inherited) {
-      return { difficulty: stats.inherited.difficulty, displayAccuracy: stats.inherited.accuracy }
+      return { difficulty: stats.inherited.difficulty as QuestionDifficulty, displayAccuracy: stats.inherited.accuracy }
     }
-    return { difficulty: 'beginner' as const, displayAccuracy: snsAccuracy ?? null }
+    // 基本回答10件未満は SNS 正答率から判定する。SNS 正答率もない問題は「未集計」「不明」（0%や初級として補わない）
+    if (snsAccuracy === undefined) return { difficulty: 'unknown' as QuestionDifficulty, displayAccuracy: null }
+    return { difficulty: classifyAccuracy(snsAccuracy) as QuestionDifficulty, displayAccuracy: snsAccuracy }
   }
   const accuracy = stats.basicCorrectCount / stats.basicAnswerCount
   return {
-    difficulty: stats.judgedDifficulty ?? classifyAccuracy(accuracy),
+    difficulty: (stats.judgedDifficulty ?? classifyAccuracy(accuracy)) as QuestionDifficulty,
     displayAccuracy: accuracy,
   }
 }

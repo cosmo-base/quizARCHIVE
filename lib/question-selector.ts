@@ -1,6 +1,6 @@
 import { mockConfig } from './config'
 import { levels } from './labels'
-import type { Composition, CompositionKey, Level, Question } from './types'
+import type { Composition, CompositionKey, Level, Question, QuestionDifficulty } from './types'
 
 export type Rng = () => number
 
@@ -30,7 +30,7 @@ export function toSetKey(ids: string[]) {
 }
 
 export function countByDifficulty(questions: Pick<Question, 'difficulty'>[]) {
-  const result: Record<Level, number> = { beginner: 0, intermediate: 0, advanced: 0, expert: 0 }
+  const result: Record<QuestionDifficulty, number> = { beginner: 0, intermediate: 0, advanced: 0, expert: 0, unknown: 0 }
   for (const q of questions) result[q.difficulty] += 1
   return result
 }
@@ -56,9 +56,9 @@ function fieldQuotas(pool: Question[], count: number, rng: Rng) {
   return quotas
 }
 
-/** 不足時は1段階下、その次に上位を試す */
-function fallbackOrder(level: CompositionKey, rng: Rng): Level[] {
-  if (level === 'any') return shuffle(levels, rng)
+/** 不足時は1段階下、その次に上位を試す。全難易度ランダム枠だけは難易度「不明」も使う */
+function fallbackOrder(level: CompositionKey, rng: Rng): QuestionDifficulty[] {
+  if (level === 'any') return shuffle<QuestionDifficulty>([...levels, 'unknown'], rng)
   const idx = levels.indexOf(level)
   const lower = levels.slice(0, idx).reverse()
   const higher = levels.slice(idx + 1)
@@ -68,7 +68,9 @@ function fallbackOrder(level: CompositionKey, rng: Rng): Level[] {
 const demandOrder: CompositionKey[] = ['expert', 'advanced', 'intermediate', 'beginner', 'any']
 
 function pickOnce(pool: Question[], count: number, composition: Composition | undefined, rng: Rng) {
-  const quotas = fieldQuotas(pool, count, rng)
+  // テストでは、難易度「不明」の問題は全難易度ランダム枠があるときだけ候補にする
+  const allowUnknown = !composition || (composition.any ?? 0) > 0
+  const quotas = fieldQuotas(allowUnknown ? pool : pool.filter((q) => q.difficulty !== 'unknown'), count, rng)
   const used = new Set<string>()
   const picked: Question[] = []
   let adjusted = false
@@ -105,7 +107,8 @@ function pickOnce(pool: Question[], count: number, composition: Composition | un
   // 残った分野枠を埋める（練習、または構成で埋まらなかった枠）
   for (const [fieldId, quota] of quotas) {
     if (quota <= 0) continue
-    const candidates = shuffle(pool.filter((q) => !used.has(q.id) && q.fieldId === fieldId), rng)
+    // 構成で埋まらなかった枠には、難易度「不明」の問題を使わない（不明は全難易度ランダム枠だけ）
+    const candidates = shuffle(pool.filter((q) => !used.has(q.id) && q.fieldId === fieldId && (!composition || q.difficulty !== 'unknown')), rng)
     for (const q of candidates.slice(0, quota)) {
       take(q)
       if (composition) adjusted = true
@@ -120,7 +123,7 @@ export type SelectionResult =
       ok: true
       questions: Question[]
       setKey: string
-      actualComposition: Record<Level, number>
+      actualComposition: Record<QuestionDifficulty, number>
       adjusted: boolean
       duplicateAllowed: boolean
     }
