@@ -30,7 +30,7 @@ import type {
  * UI確認用のモック永続化（localStorage）。
  * 本番の実績・全体集計はサーバー側で扱う前提で、ここでは成立させない。
  */
-const STORAGE_KEY = 'cosmo-quiz-mock-v3'
+const STORAGE_KEY = 'cosmo-quiz-mock-v4'
 export const DEMO_USER_ID = 'demo-user'
 
 export interface DemoFlags {
@@ -41,7 +41,7 @@ export interface DemoFlags {
 }
 
 export interface AppState {
-  schemaVersion: 3
+  schemaVersion: 4
   sessionUserId: string | null
   users: Record<string, UserProfile>
   stats: Record<string, QuestionStats>
@@ -165,8 +165,8 @@ function createSeedState(): AppState {
   const failedSet = testSet()
   let failedSnaps = failedSet.questions.map(toSnapshot)
   if (!failedSnaps.some((s) => s.questionId === 'Q-021')) {
-    const idx = failedSnaps.findIndex((s) => s.fieldId === 'stars')
-    failedSnaps[idx] = { questionId: 'Q-021', versionId: 'Q-021-v1', fieldId: 'stars', difficulty: 'intermediate', displayAccuracy: 0.41 }
+    const idx = failedSnaps.findIndex((s) => s.fieldId === 'astronomy')
+    failedSnaps[idx] = { questionId: 'Q-021', versionId: 'Q-021-v1', fieldId: 'astronomy', difficulty: 'intermediate', displayAccuracy: 0.41 }
   } else {
     failedSnaps = failedSnaps.map((s) => (s.questionId === 'Q-021' ? { ...s, versionId: 'Q-021-v1' } : s))
   }
@@ -296,7 +296,7 @@ function createSeedState(): AppState {
   inProgress.currentIndex = 2
 
   const state: AppState = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     sessionUserId: null,
     users: { [DEMO_USER_ID]: user },
     stats,
@@ -335,7 +335,7 @@ function load(): AppState {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as AppState
-      if (parsed.schemaVersion === 3) return parsed
+      if (parsed.schemaVersion === 4) return parsed
     }
   } catch {
     // 破損時は初期データで作り直す

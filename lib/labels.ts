@@ -1,4 +1,4 @@
-import type { AttemptStatus, Level, Mode, ReportReason, TestKind } from './types'
+import type { AttemptStatus, Level, Mode, QuestionDifficulty, ReportReason, TestKind } from './types'
 
 export const levels: Level[] = ['beginner', 'intermediate', 'advanced', 'expert']
 
@@ -15,6 +15,10 @@ export const levelRank: Record<Level, number> = {
   advanced: 3,
   expert: 4,
 }
+
+/** 問題難易度の表示名（「不明」を含む） */
+export const difficultyLabel: Record<QuestionDifficulty, string> = { ...levelLabel, unknown: '不明' }
+export const difficultyRank: Record<QuestionDifficulty, number> = { ...levelRank, unknown: 0 }
 
 export const testKindLabel: Record<TestKind, string> = {
   toIntermediate: '中級昇格テスト',

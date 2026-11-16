@@ -117,7 +117,7 @@ export interface AttemptDetail extends AttemptSummary {
   answers: Record<string, string | null>
   savedSeq: number
   baseComposition?: Composition
-  actualComposition?: Record<Level, number>
+  actualComposition?: Record<QuestionDifficulty, number>
   adjusted?: boolean
   items?: AttemptReviewItem[]
 }

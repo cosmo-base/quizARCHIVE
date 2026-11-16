@@ -1,7 +1,8 @@
 /** 4段階の名前は共通だが、個人レベル(userLevel)と問題難易度(questionDifficulty)は別の値として扱う */
 export type Level = 'beginner' | 'intermediate' | 'advanced' | 'expert'
 export type UserLevel = Level
-export type QuestionDifficulty = Level
+/** 問題難易度。SNS 正答率がなく基本回答10件未満の問題は 'unknown'（不明） */
+export type QuestionDifficulty = Level | 'unknown'
 
 export type Mode = 'practice' | 'test' | 'review'
 export type TestKind = 'toIntermediate' | 'toAdvanced' | 'toExpert' | 'expertStars'
@@ -51,10 +52,10 @@ export interface QuestionStats {
   reviewAnswerCount: number
   reviewCorrectCount: number
   /** 自動判定済みの難易度と、その判定時点の基本回答数 */
-  judgedDifficulty?: QuestionDifficulty
+  judgedDifficulty?: Level
   judgedAtCount?: number
   /** 版修正時、新版が最低件数に達するまで旧版の値を継承 */
-  inherited?: { accuracy: number; difficulty: QuestionDifficulty }
+  inherited?: { accuracy: number; difficulty: Level }
 }
 
 /** 表示・出題で使う統合済みの問題 */
@@ -142,7 +143,7 @@ export interface Attempt {
   statsBucket: StatsBucket
   practiceSettings?: PracticeSettings
   baseComposition?: Composition
-  actualComposition?: Record<Level, number>
+  actualComposition?: Record<QuestionDifficulty, number>
   compositionAdjusted?: boolean
   setKey: string
   analytics?: AttemptAnalytics

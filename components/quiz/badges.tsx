@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { levelLabel, levelRank } from '@/lib/labels'
+import { difficultyLabel, difficultyRank, levelLabel, levelRank } from '@/lib/labels'
 import type { QuestionDifficulty, UserLevel } from '@/lib/types'
 
 function RankBars({ rank, className }: { rank: number; className?: string }) {
@@ -25,10 +25,10 @@ export function DifficultyBadge({ difficulty, className }: { difficulty: Questio
         className,
       )}
     >
-      <RankBars rank={levelRank[difficulty]} className="text-primary" />
+      <RankBars rank={difficultyRank[difficulty]} className="text-primary" />
       <span>
         <span className="sr-only">問題難易度：</span>
-        {levelLabel[difficulty]}
+        {difficultyLabel[difficulty]}
       </span>
     </span>
   )

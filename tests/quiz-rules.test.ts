@@ -42,10 +42,14 @@ test('fixed set allowed; exhausted alternative sets rejected; order-independent 
   const exhausted = selectQuestionSet({ pool: small, count: 2, avoidSetKeys: allKeys, rng: createRng(1) })
   assert.ok(!exhausted.ok && exhausted.reason === 'noAlternative')
 })
-test('9 basic answers with many reviews stays beginner; 10th answer reclassifies; boundaries', () => {
+test('under 10 basic answers uses SNS accuracy (unknown without it); reviews do not count; 10th answer reclassifies; boundaries', () => {
   const q = pool[0]
   const stats: Record<string, QuestionStats> = { [q.id]: { ...emptyStats(q.versionId), basicAnswerCount: 9, basicCorrectCount: 5, reviewAnswerCount: 400 } }
-  assert.equal(deriveDisplay(stats[q.id]).difficulty, 'beginner')
+  // SNS 正答率なし・基本回答10件未満 → 未集計・不明（0%や初級として補わない）
+  assert.deepEqual(deriveDisplay(stats[q.id]), { difficulty: 'unknown', displayAccuracy: null })
+  // SNS 正答率あり → SNS 正答率で表示・判定（復習回答は最低件数に数えない）
+  assert.deepEqual(deriveDisplay(stats[q.id], 0.6), { difficulty: 'beginner', displayAccuracy: 0.6 })
+  assert.equal(deriveDisplay(stats[q.id], 0.2).difficulty, 'advanced')
   applyAnswerToStats(stats, q.id, q.versionId, false, 'basic')
   assert.equal(deriveDisplay(stats[q.id]).difficulty, 'intermediate')
   for (const [correct, level] of [[6, 'beginner'], [5, 'intermediate'], [3, 'advanced'], [1, 'expert']] as const) assert.equal(deriveDisplay({ ...emptyStats(q.versionId), basicAnswerCount: 10, basicCorrectCount: correct }).difficulty, level)
@@ -85,4 +89,29 @@ test('expert stars at 15, 18, 30, 33 and JST midnight', () => {
   assert.equal(starDisplay(33).plus, 6)
   assert.equal(jstDateKey(new Date('2026-11-01T14:59:59Z')), '2026-11-01')
   assert.equal(jstDateKey(new Date('2026-11-01T15:00:00Z')), '2026-11-02')
+})
+
+test('unknown-difficulty questions are used only in the expert-stars random slots', () => {
+  const unknown = pool.slice(0, 12).map((q) => ({ ...q, id: `${q.id}-u`, difficulty: 'unknown' as const }))
+  const mixed = [...pool, ...unknown]
+  const isUnknown = (id: string) => id.endsWith('-u')
+  for (let i = 0; i < 20; i++) {
+    for (const kind of ['toIntermediate', 'toAdvanced', 'toExpert'] as const) {
+      const r = selectQuestionSet({ pool: mixed, count: 40, composition: testCompositions[kind], avoidSetKeys: [], rng: createRng(i) })
+      assert.ok(r.ok)
+      if (r.ok) assert.equal(r.questions.filter((q) => isUnknown(q.id)).length, 0, kind)
+    }
+    const star = selectQuestionSet({ pool: mixed, count: 40, composition: testCompositions.expertStars, avoidSetKeys: [], rng: createRng(i) })
+    assert.ok(star.ok)
+    if (star.ok) assert.ok(star.questions.filter((q) => isUnknown(q.id)).length <= (testCompositions.expertStars.any ?? 0))
+  }
+  // 練習（構成なし）では通常どおり出題される
+  const practice = selectQuestionSet({ pool: unknown, count: 5, avoidSetKeys: [], rng: createRng(3) })
+  assert.ok(practice.ok)
+})
+
+test('seven fields are used and each has enough questions for a balanced test', () => {
+  const byField = questionContents.reduce<Record<string, number>>((m, q) => { m[q.fieldId] = (m[q.fieldId] ?? 0) + 1; return m }, {})
+  assert.deepEqual(Object.keys(byField).sort(), ['astronomy', 'basics', 'business', 'development', 'exploration', 'history', 'policy'])
+  for (const n of Object.values(byField)) assert.ok(n >= 6)
 })

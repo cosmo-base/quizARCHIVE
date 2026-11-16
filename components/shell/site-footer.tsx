@@ -12,7 +12,9 @@ export function SiteFooter() {
           <Link href="/progress#rules" className="underline-offset-4 hover:text-foreground hover:underline">
             認定ルール
           </Link>
-
+          <Link href="/privacy" className="underline-offset-4 hover:text-foreground hover:underline">
+            プライバシー
+          </Link>
         </div>
       </div>
     </footer>
