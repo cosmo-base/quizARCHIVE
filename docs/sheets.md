@@ -5,7 +5,8 @@
 
 ## 0. 前提
 
-- 保存先は4つのスプレッドシートに分ける：① 問題 ② 統計 ③ 個人データ ④ 運営。
+- 保存先は**1つのスプレッドシート**とし、① 問題 ② 統計 ③ 個人データ ④ 運営 の各タブを作る。個人データも同じファイルに入るため、共有は管理者に絞る。
+- タブと見出しは、Archive 用スプシに紐づく GAS の「シートを準備」で作る（GAS のコードはリポジトリに含めない）。セルはすべて書式なしテキストにする。
 - 読み書きは GAS（Web アプリ）だけが行う。参加者のブラウザはスプシに直接アクセスしない。
 - 日時は ISO 8601（UTC）で保存し、画面や日付の区切りは日本時間で扱う。
 - 1つのスプレッドシートに入るセルは1,000万個まで。行が増え続けるシート（③の回答など）は、列を必要最小限にする。
@@ -31,6 +32,9 @@
 - テストの分野均等配分は 40 ÷ 7 で、6・6・6・6・6・5・5 問。
 - 移行後に「分野 × 難易度」の問題数を数え、テストの基準構成を満たせるか確認する。
 
+### 読み飛ばす行
+- 問題文が空の行は読み飛ばす（先の番号と数式だけが入った、まだ出題していない行など）。確認が必要な行としても記録しない。
+
 ### 正解の特定
 1. 「正解は N　〜 です。」の形なら、番号 N の選択肢を正解とする。
 2. それ以外は、回答の文字と選択肢を照らし合わせる。全角・半角、空白の違いはそろえてから比べる（例：「環(リング)」と「環（リング）」）。
@@ -50,9 +54,9 @@
 ## 2. 日次の取り込み
 
 - 元スプシには毎朝6時に「当日の問題」と「前日の SNS 回答数」が反映される。
-- 取り込み用の GAS を毎朝6時より後（例：6時15分）に実行し、**出題日が前日と当日の行だけ**を読む。前々日以前の行は変わらないため読まない。
-  - 新しい行：問題と版1を作る（正解の特定・接続詞の除去は移行と同じ規則）。サイトへの公開は出題日の翌日からとし、`publish_from` に出題日の翌日を入れる。
-  - 前日の行：SNS の回答数・正答数だけを更新する。問題文などは上書きしない（修正は管理画面から版を追加して行う）。
+- 取り込み用の GAS を毎朝6時より後（6時15分ごろ）に自動実行する。シート全体は読まず、**問題文が入っている最後の行から上の数行だけ**を読む（最後の行は問題文の列だけを読んで探す）（初期値30行。スクリプト プロパティ `SYNC_TAIL_ROWS` で変更できる）。前々日以前の行は変わらないため、それより前は読まない。
+  - まだ登録していない番号の行：問題と版1を作る（正解の特定・接続詞の除去は移行と同じ規則）。サイトへの公開は出題日の翌日からとし、`publish_from` に出題日の翌日を入れる。取り込みが何日か止まっていても、末尾の範囲にある行は追加される。
+  - 出題日が前日・当日の行：SNS の回答数・正答数と出題した媒体だけを更新する。問題文などは上書きしない（修正は管理画面から版を追加して行う）。
 - 実行結果（追加・更新した件数、正解を特定できなかった行など）は ④ 運営の取り込み記録に残す。
 - 初回の移行だけは、全行を読む。
 
@@ -140,6 +144,15 @@
 | total ／ answered ／ correct ／ duration_sec | 出題数・回答数・正解数・所要時間 |
 | finalized | 終了処理を反映済みか（二重反映の防止） |
 | is_test_data | 動作確認用の回か（本番の統計から除外するため） |
+| current_index | 表示中の問題の位置（再開用） |
+| saved_seq | 最後に保存した送信の番号（古い送信で新しい選択を上書きしないため） |
+
+保存する値（API の値と同じ）
+- mode：`practice`／`test`／`review`、test_kind：`toIntermediate`／`toAdvanced`／`toExpert`／`expertStars`
+- stats_bucket：`basic`／`review`、status：`inProgress`／`completed`／`timedOut`
+- finish_reason：`manual_all`（全問回答して終了）／`manual_unanswered`（未回答ありで終了）／`timeout`
+- level・level_at_start：`beginner`／`intermediate`／`advanced`／`expert`
+- 真偽値は文字の `true`／`false`。日時は ISO 8601（UTC）
 
 ### attempt_questions（回の各問題）
 | 列 | 内容 |
@@ -185,4 +198,5 @@
 | notices（お知らせ） | notice_id、kind（訂正／お知らせ）、title、summary、body、question_id、before、after、published_at、ends_at |
 | reports（誤り報告） | report_id、question_id、version_id、attempt_id、reason、detail、owner、created_at、status（受付・対応中・対応済み） |
 | settings（設定値） | key、value、updated_at（合格点、判定の最低件数・間隔など） |
-| sync_log（取り込み記録） | run_at、read_rows、added、updated、unresolved（正解を特定できなかった行など）、message |
+| sync_log（取り込み記録） | run_at、kind（setup／migration／daily）、read_rows、added、updated、unresolved（正解を特定できなかった行の数）、message |
+| import_issues（確認が必要な行） | run_at、source_row（元スプシの行番号）、source_no（番号）、kind（correct_unresolved・conjunction_removed・unknown_field・duplicate_no・invalid_date など）、detail |
