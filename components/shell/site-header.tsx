@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -11,6 +12,8 @@ import { logout } from '@/lib/api/client'
 import { useMe } from '@/lib/api/hooks'
 import { useSession } from '@/lib/api/session'
 import { cn } from '@/lib/utils'
+import dailyQuizLogo from '@/assets/brand/daily-quiz.png'
+import cloudMark from '@/assets/brand/cloud.png'
 
 export const navItems = [
   { href: '/', label: 'ホーム', icon: Home },
@@ -27,9 +30,10 @@ export function isActivePath(pathname: string, href: string) {
 
 export function Wordmark() {
   return (
-    <span className="flex items-baseline gap-2 whitespace-nowrap">
-      <span className="text-[17px] font-bold tracking-tight text-foreground">Cosmo Base</span>
-      <span className="text-sm font-medium text-primary">宇宙クイズ</span>
+    <span className="flex items-center">
+      {/* スマホは雲のマークだけ、広い画面は「毎日宇宙クイズ」のロゴ */}
+      <Image src={cloudMark} alt="毎日宇宙クイズ" className="h-8 w-8 sm:hidden" priority />
+      <Image src={dailyQuizLogo} alt="毎日宇宙クイズ" className="hidden h-7 w-auto sm:block" priority />
     </span>
   )
 }
@@ -44,7 +48,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur supports-backdrop-filter:bg-card/85">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
-        <Link href="/" className="rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label="Cosmo Base 宇宙クイズ ホーム">
+        <Link href="/" className="rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label="毎日宇宙クイズ 過去問 ホーム">
           <Wordmark />
         </Link>
 
