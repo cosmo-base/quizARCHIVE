@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { BookOpen, ClipboardCheck, History, Home, LogOut, PencilLine } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DemoLoginDialog } from '@/components/quiz/demo-login-dialog'
+import { LoginDialog } from '@/components/quiz/login-dialog'
 import { UserLevelBadge } from '@/components/quiz/badges'
 import { logout } from '@/lib/api/client'
 import { useMe } from '@/lib/api/hooks'
@@ -104,7 +104,7 @@ export function SiteHeader() {
           )}
         </div>
       </div>
-      <DemoLoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
+      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
     </header>
   )
 }

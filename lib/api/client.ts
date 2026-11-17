@@ -94,7 +94,9 @@ export const api = {
 
   reportsCreate: (p: ReportParams) => call<{ reportId: string }>('reports.create', { ...p }),
 
-  /** V0 のデモログイン（Discord ログインは後続で auth.discord に置き換える） */
+  /** Discord から受け取った code でログインする */
+  authDiscord: (p: { code: string; redirectUri: string }) => call<SessionInfo>('auth.discord', p),
+  /** モック専用のデモログイン（GAS につないでいるときは使わない） */
   authDemoLogin: () => call<SessionInfo>('auth.demoLogin'),
   authLogout: () => call<{ ok: true }>('auth.logout'),
 }
@@ -102,6 +104,13 @@ export const api = {
 /** ログイン（デモ）。成功したらこの端末にログイン状態を保存する */
 export async function loginDemo() {
   const s = await api.authDemoLogin()
+  setSession(s)
+  return s
+}
+
+/** Discord から戻ってきた code でログインし、この端末にログイン状態を保存する */
+export async function loginWithDiscordCode(code: string, redirectUri: string) {
+  const s = await api.authDiscord({ code, redirectUri })
   setSession(s)
   return s
 }

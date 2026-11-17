@@ -37,6 +37,8 @@ jobs:
           # GAS の Web アプリの URL。リポジトリの Settings → Secrets and variables → Actions → Variables の API_URL に登録する。
           # 未登録ならモックで動く。
           NEXT_PUBLIC_API_URL: ${{ vars.API_URL }}
+          # Discord のアプリのクライアントID（公開されても問題ない値）。Variables の DISCORD_CLIENT_ID に登録する。
+          NEXT_PUBLIC_DISCORD_CLIENT_ID: ${{ vars.DISCORD_CLIENT_ID }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out

@@ -169,7 +169,13 @@
 
 ### `auth.logout`
 - 送る：`token`
-- 処理：そのトークンを無効にする。
+- 処理：そのトークンの有効期限を今にして無効にする（行は消さない）。期限切れのトークンでも `ok` を返す。
+
+### 準備（GAS とサイトの設定）
+- Discord Developer Portal でアプリを作り、OAuth2 の Redirects に上記の戻り先を登録する。
+- GAS のスクリプトプロパティ：`DISCORD_CLIENT_ID`・`DISCORD_CLIENT_SECRET`・`DISCORD_GUILD_ID`・`USER_KEY_SECRET`（長いランダムな値。団体の管理下で控えておく）。
+- GitHub の Actions 変数 `DISCORD_CLIENT_ID`（クライアントID。公開されても問題ない値）。ビルド時に `NEXT_PUBLIC_DISCORD_CLIENT_ID` として渡す。
+- Discord の回数制限（429）にかかったときは `BUSY` を返し、少し待ってからログインし直してもらう。
 
 ### `auth.demoLogin`（V0 のモック専用）
 - デモ用の利用者でログインしたことにする。Discord ログインに置き換えたら使わない。
