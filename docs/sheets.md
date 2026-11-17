@@ -144,6 +144,15 @@
 | total ／ answered ／ correct ／ duration_sec | 出題数・回答数・正解数・所要時間 |
 | finalized | 終了処理を反映済みか（二重反映の防止） |
 | is_test_data | 動作確認用の回か（本番の統計から除外するため） |
+| current_index | 表示中の問題の位置（再開用） |
+| saved_seq | 最後に保存した送信の番号（古い送信で新しい選択を上書きしないため） |
+
+保存する値（API の値と同じ）
+- mode：`practice`／`test`／`review`、test_kind：`toIntermediate`／`toAdvanced`／`toExpert`／`expertStars`
+- stats_bucket：`basic`／`review`、status：`inProgress`／`completed`／`timedOut`
+- finish_reason：`manual_all`（全問回答して終了）／`manual_unanswered`（未回答ありで終了）／`timeout`
+- level・level_at_start：`beginner`／`intermediate`／`advanced`／`expert`
+- 真偽値は文字の `true`／`false`。日時は ISO 8601（UTC）
 
 ### attempt_questions（回の各問題）
 | 列 | 内容 |
