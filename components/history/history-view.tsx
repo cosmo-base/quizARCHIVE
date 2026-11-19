@@ -8,8 +8,7 @@ import { LinkButton } from '@/components/link-button'
 import { LoginDialog } from '@/components/quiz/login-dialog'
 import { QuestionMeta } from '@/components/quiz/question-meta'
 import { AttemptOutcome } from './attempt-outcome'
-import { api } from '@/lib/api/client'
-import { useHistory, useSolved } from '@/lib/api/hooks'
+import { startAttempt, useHistory, useSolved } from '@/lib/api/hooks'
 import { useSession } from '@/lib/api/session'
 import { attemptSettingsSummary } from '@/lib/attempt-summary'
 import { attemptTitle, statusLabel } from '@/lib/labels'
@@ -31,8 +30,7 @@ export function HistoryView({ questions = false }: { questions?: boolean }) {
     if (starting) return
     setStarting(true)
     setError('')
-    api
-      .attemptsStart({ mode: 'review', sourceAttemptId: sourceAttemptId ?? null, questionIds: [questionId] })
+    startAttempt({ mode: 'review', sourceAttemptId: sourceAttemptId ?? null, questionIds: [questionId] })
       .then((a) => router.push(routes.attempt(a.id)))
       .catch((e: Error) => { setError(e.message); setStarting(false) })
   }

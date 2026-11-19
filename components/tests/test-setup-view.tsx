@@ -12,9 +12,9 @@ import { ResumeBanner } from '@/components/quiz/resume-banner'
 import { testCompositions } from '@/lib/config'
 import { testKindLabel, testKindTarget } from '@/lib/labels'
 import { eligibleTestKind } from '@/lib/recognition'
-import { api, isMockApi, loginDemo } from '@/lib/api/client'
+import { isMockApi, loginDemo } from '@/lib/api/client'
 import { isDiscordLoginReady, startDiscordLogin } from '@/lib/auth/discord'
-import { useMe } from '@/lib/api/hooks'
+import { startAttempt, useMe } from '@/lib/api/hooks'
 import { useSession } from '@/lib/api/session'
 import type { TestKind } from '@/lib/types'
 import { routes } from '@/lib/routes'
@@ -52,8 +52,7 @@ export function TestSetupView() {
     if (!prepared || starting) return
     setStarting(true)
     // 資格の確認・出題・期限の決定はサーバー側で行う
-    api
-      .attemptsStart({ mode: 'test', testKind: prepared.kind })
+    startAttempt({ mode: 'test', testKind: prepared.kind })
       .then((a) => router.push(routes.attempt(a.id)))
       .catch((e: Error) => {
         setError(e.message)

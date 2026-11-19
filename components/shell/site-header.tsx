@@ -13,6 +13,8 @@ import { useMe } from '@/lib/api/hooks'
 import { useSession } from '@/lib/api/session'
 import { cn } from '@/lib/utils'
 import dailyQuizLogo from '@/assets/brand/daily-quiz.png'
+import dailyQuizLogoDark from '@/assets/brand/daily-quiz-dark.png'
+import { ThemeToggle } from '@/components/shell/theme-toggle'
 import cloudMark from '@/assets/brand/cloud.png'
 
 export const navItems = [
@@ -33,7 +35,8 @@ export function Wordmark() {
     <span className="flex items-center">
       {/* スマホは雲のマークだけ、広い画面は「毎日宇宙クイズ」のロゴ */}
       <Image src={cloudMark} alt="毎日宇宙クイズ" className="h-8 w-8 sm:hidden" priority />
-      <Image src={dailyQuizLogo} alt="毎日宇宙クイズ" className="hidden h-7 w-auto sm:block" priority />
+      <Image src={dailyQuizLogo} alt="毎日宇宙クイズ" className="hidden h-7 w-auto sm:block dark:sm:hidden" priority />
+      <Image src={dailyQuizLogoDark} alt="毎日宇宙クイズ" className="hidden h-7 w-auto dark:sm:block" priority />
     </span>
   )
 }
@@ -75,6 +78,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex min-h-10 items-center gap-2">
+          <ThemeToggle />
           {session === undefined || (session && !me) ? (
             <span className="h-9 w-24 animate-pulse rounded-lg bg-muted" aria-hidden="true" />
           ) : session && me ? (
