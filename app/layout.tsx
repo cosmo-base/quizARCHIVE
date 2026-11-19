@@ -19,10 +19,10 @@ const notoSansJp = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: {
-    default: '宇宙クイズ | Cosmo Base',
-    template: '%s | 宇宙クイズ',
+    default: '毎日宇宙クイズ 過去問 | Cosmo Base',
+    template: '%s | 毎日宇宙クイズ 過去問',
   },
-  description: '気になる問題から、宇宙をもっと知ろう。Cosmo Base の宇宙クイズで練習・テストに挑戦できます。',
+  description: '気になる問題から、宇宙をもっと知ろう。Cosmo Base の「毎日宇宙クイズ」の過去問で、練習・テストに挑戦できます。',
   generator: 'v0.app',
   icons: {
     icon: [
