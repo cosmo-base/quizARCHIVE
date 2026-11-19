@@ -11,8 +11,7 @@ import { ReportDialog } from '@/components/quiz/report-dialog'
 import { QuestionMeta } from '@/components/quiz/question-meta'
 import { StarRow } from '@/components/quiz/star-row'
 import { LinkButton } from '@/components/link-button'
-import { api } from '@/lib/api/client'
-import { useAttempt } from '@/lib/api/hooks'
+import { startAttempt, useAttempt } from '@/lib/api/hooks'
 import { ApiError, isPassedSummary } from '@/lib/api/types'
 import { attemptTitle, levelLabel } from '@/lib/labels'
 import { formatDuration, formatPercent } from '@/lib/time'
@@ -42,8 +41,8 @@ export function ResultView({ id }: { id: string }) {
     if (!review && a.mode === 'test') { router.push(a.testKind ? `/tests?kind=${a.testKind}` : '/tests'); return }
     setStarting(true)
     const start = review
-      ? api.attemptsStart({ mode: 'review', sourceAttemptId: id })
-      : api.attemptsStart({ mode: 'practice', settings: a.practiceSettings ?? { count: items.length, fieldIds: [...new Set(items.map((q) => q.fieldId))], difficulties: [], timeLimitMinutes: null } })
+      ? startAttempt({ mode: 'review', sourceAttemptId: id })
+      : startAttempt({ mode: 'practice', settings: a.practiceSettings ?? { count: items.length, fieldIds: [...new Set(items.map((q) => q.fieldId))], difficulties: [], timeLimitMinutes: null } })
     start
       .then((next) => router.push(routes.attempt(next.id)))
       .catch((e: Error) => { setError(e.message); setStarting(false) })

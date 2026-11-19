@@ -10,8 +10,7 @@ import { FilterPanel } from '@/components/questions/filter-panel'
 import { ResumeBanner } from '@/components/quiz/resume-banner'
 import { mockConfig } from '@/lib/config'
 import { levelLabel, levels } from '@/lib/labels'
-import { api } from '@/lib/api/client'
-import { useMe, useQuestionsIndex } from '@/lib/api/hooks'
+import { startAttempt, useMe, useQuestionsIndex } from '@/lib/api/hooks'
 import { useSession } from '@/lib/api/session'
 import { filterPracticePool } from '@/lib/filter'
 import { formatDuration } from '@/lib/time'
@@ -60,8 +59,7 @@ export function PracticeSetupView() {
     if (starting) return
     setStarting(true)
     setError(null)
-    api
-      .attemptsStart({ mode: 'practice', settings: { count, fieldIds, difficulties, timeLimitMinutes: timeLimit, keyword: keyword || undefined } })
+    startAttempt({ mode: 'practice', settings: { count, fieldIds, difficulties, timeLimitMinutes: timeLimit, keyword: keyword || undefined } })
       .then((a) => router.push(routes.attempt(a.id)))
       .catch((e: Error) => {
         setError(e.message)

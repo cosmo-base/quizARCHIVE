@@ -13,7 +13,7 @@ import { QuestionMeta } from '@/components/quiz/question-meta'
 import { ReportDialog } from '@/components/quiz/report-dialog'
 import { mockConfig } from '@/lib/config'
 import { api, newRequestId } from '@/lib/api/client'
-import { useQuestionDetail } from '@/lib/api/hooks'
+import { refreshUserState, useQuestionDetail } from '@/lib/api/hooks'
 import { ApiError } from '@/lib/api/types'
 import { cn } from '@/lib/utils'
 import { useIdFromQuery } from '@/components/id-from-query'
@@ -97,7 +97,7 @@ export function QuestionDetailView({ id }: { id: string }) {
     eventId.current ??= newRequestId()
     api
       .singleAnswer({ questionId: q.id, versionId: q.versionId, choiceId: selected, eventId: eventId.current, kind: 'answer' })
-      .then(() => mutate())
+      .then(() => { void refreshUserState(['history.questions']); return mutate() })
       .catch(fail)
       .finally(() => setSubmitting(false))
   }
@@ -108,7 +108,7 @@ export function QuestionDetailView({ id }: { id: string }) {
     setActionError('')
     api
       .singleExplanation({ questionId: q.id, versionId: q.versionId })
-      .then(() => mutate())
+      .then(() => { void refreshUserState(['history.questions']); return mutate() })
       .catch(fail)
       .finally(() => setSubmitting(false))
   }
@@ -124,6 +124,7 @@ export function QuestionDetailView({ id }: { id: string }) {
       .singleAnswer({ questionId: q.id, versionId: q.versionId, choiceId: retry.choiceId, eventId: newRequestId(), kind: 'retry' })
       .then((r) => {
         setRetry({ ...retry, result: r.correct })
+        void refreshUserState(['history.questions'])
         return mutate()
       })
       .catch(fail)

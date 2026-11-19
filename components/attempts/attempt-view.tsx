@@ -12,7 +12,7 @@ import { QuestionMeta } from '@/components/quiz/question-meta'
 import { LinkButton } from '@/components/link-button'
 import { useIdFromQuery } from '@/components/id-from-query'
 import { api } from '@/lib/api/client'
-import { useAttempt } from '@/lib/api/hooks'
+import { finishAttempt, refreshUserState, useAttempt } from '@/lib/api/hooks'
 import { ApiError, type AttemptDetail } from '@/lib/api/types'
 import { attemptTitle } from '@/lib/labels'
 import { routes } from '@/lib/routes'
@@ -27,7 +27,10 @@ export function AttemptView({ id }: { id: string }) {
   const router = useRouter()
   const { data: attempt, error, mutate } = useAttempt(id)
   useEffect(() => {
-    if (attempt?.finalized) router.replace(routes.result(attempt.id))
+    if (!attempt?.finalized) return
+    // 開いたときに時間切れで確定した回もあるため、レベル・履歴を取り直してから結果へ
+    void refreshUserState()
+    router.replace(routes.result(attempt.id))
   }, [attempt?.finalized, attempt?.id, router])
 
   if (error instanceof ApiError && error.code === 'FORBIDDEN') {
@@ -46,13 +49,12 @@ export function AttemptView({ id }: { id: string }) {
     )
   }
   if (!attempt || attempt.finalized) return <PageSkeleton />
-  // 採点結果で画面のデータを上書きする。結果の画面が採点前の古いデータを読んで、回答中の画面へ戻すのを防ぐ
-  return <ActiveAttempt key={id} attempt={attempt} onFinished={(done) => mutate(done, { revalidate: false })} />
+  return <ActiveAttempt key={id} attempt={attempt} />
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'failed'
 
-function ActiveAttempt({ attempt, onFinished }: { attempt: AttemptDetail; onFinished: (done: AttemptDetail) => void }) {
+function ActiveAttempt({ attempt }: { attempt: AttemptDetail }) {
   const router = useRouter()
   const [answers, setAnswers] = useState(attempt.answers)
   const answersRef = useRef(answers)
@@ -73,12 +75,9 @@ function ActiveAttempt({ attempt, onFinished }: { attempt: AttemptDetail; onFini
     finishing.current = true
     setGrading(true)
     setFinishError('')
-    api
-      .attemptsFinish({ attemptId: attempt.id, answers: answersRef.current, seq: ++seqRef.current })
-      .then((done) => {
-        onFinished(done)
-        router.replace(routes.result(attempt.id))
-      })
+    // 採点結果を一時保存に入れてから移る（結果の画面が採点前のデータを読んで、回答中の画面へ戻すのを防ぐ）
+    finishAttempt({ attemptId: attempt.id, answers: answersRef.current, seq: ++seqRef.current })
+      .then(() => router.replace(routes.result(attempt.id)))
       .catch((e: Error) => {
         finishing.current = false
         setGrading(false)
