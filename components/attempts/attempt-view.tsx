@@ -46,12 +46,13 @@ export function AttemptView({ id }: { id: string }) {
     )
   }
   if (!attempt || attempt.finalized) return <PageSkeleton />
-  return <ActiveAttempt key={id} attempt={attempt} />
+  // 採点結果で画面のデータを上書きする。結果の画面が採点前の古いデータを読んで、回答中の画面へ戻すのを防ぐ
+  return <ActiveAttempt key={id} attempt={attempt} onFinished={(done) => mutate(done, { revalidate: false })} />
 }
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'failed'
 
-function ActiveAttempt({ attempt }: { attempt: AttemptDetail }) {
+function ActiveAttempt({ attempt, onFinished }: { attempt: AttemptDetail; onFinished: (done: AttemptDetail) => void }) {
   const router = useRouter()
   const [answers, setAnswers] = useState(attempt.answers)
   const answersRef = useRef(answers)
@@ -63,18 +64,24 @@ function ActiveAttempt({ attempt }: { attempt: AttemptDetail }) {
   const [confirm, setConfirm] = useState(false)
   const [panel, setPanel] = useState(false)
   const finishing = useRef(false)
+  const [grading, setGrading] = useState(false)
   const deadline = attempt.deadlineAt ? new Date(attempt.deadlineAt).getTime() : null
 
   /** 終了の確定。期限を過ぎていれば、サーバーが期限時点の保存内容で採点する */
   const finish = () => {
     if (finishing.current) return
     finishing.current = true
+    setGrading(true)
     setFinishError('')
     api
       .attemptsFinish({ attemptId: attempt.id, answers: answersRef.current, seq: ++seqRef.current })
-      .then(() => router.replace(routes.result(attempt.id)))
+      .then((done) => {
+        onFinished(done)
+        router.replace(routes.result(attempt.id))
+      })
       .catch((e: Error) => {
         finishing.current = false
+        setGrading(false)
         setFinishError(e.message || '終了できませんでした。もう一度お試しください。')
       })
   }
@@ -135,7 +142,7 @@ function ActiveAttempt({ attempt }: { attempt: AttemptDetail }) {
   const answered = Object.values(answers).filter(Boolean).length
   const seconds = deadline !== null ? Math.ceil((deadline - now) / 1000) : (now - new Date(attempt.startedAt).getTime()) / 1000
   const warning = deadline !== null && seconds <= 60 ? '残り1分です。' : deadline !== null && seconds <= 300 ? '残り5分です。' : ''
-  const statusText = saveState === 'failed' ? '未保存の回答があります' : saveState === 'saving' ? '回答を保存しています…' : answered > 0 ? '回答を保存しました' : ''
+  const statusText = grading ? '採点しています…' : saveState === 'failed' ? '未保存の回答があります' : saveState === 'saving' ? '回答を保存しています…' : answered > 0 ? '回答を保存しました' : ''
   const numbers = <div className="flex flex-col gap-4"><p className="text-sm">回答済み {answered}／{total}問</p><div className="grid grid-cols-5 gap-2">{attempt.questions.map((x, i) => <Button key={x.id} variant={answers[x.id] ? 'default' : 'outline'} className={cn('h-11 min-w-0', index === i && 'ring-2 ring-primary ring-offset-2 ring-offset-card')} aria-current={index === i ? 'step' : undefined} aria-label={`問題${i + 1} ${answers[x.id] ? '回答済み' : '未回答'}`} onClick={() => go(i)}>{i + 1}</Button>)}</div><p className="text-sm text-muted-foreground">濃い色：回答済み／二重の枠：表示中の問題</p></div>
   return <div className="min-h-dvh pb-[calc(6rem+env(safe-area-inset-bottom))]">
     <header className="border-b bg-card"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4"><button onClick={() => setConfirm(true)} className="min-h-11 text-left font-bold focus-visible:outline-2 focus-visible:outline-primary">Cosmo Base <span className="text-sm font-normal">宇宙クイズ</span></button><div className="flex items-center gap-3"><span className="text-sm">{attemptTitle(attempt.mode, attempt.testKind)}</span><Button variant="outline" className="h-11" onClick={() => setConfirm(true)}>終了する</Button></div></div></header>
@@ -154,6 +161,6 @@ function ActiveAttempt({ attempt }: { attempt: AttemptDetail }) {
     </PageContainer></main>
     <nav aria-label="問題の移動" className="fixed inset-x-0 bottom-0 border-t bg-card px-4 pt-3 pb-[calc(.75rem+env(safe-area-inset-bottom))]"><div className="mx-auto flex max-w-6xl justify-between gap-3"><Button variant="outline" className="h-12" disabled={index === 0} onClick={() => go(index - 1)}><ChevronLeft data-icon="inline-start" />前の問題</Button><Button className="h-12" onClick={() => index === total - 1 ? setConfirm(true) : go(index + 1)}>{index === total - 1 ? '回答を確認' : '次の問題'}<ChevronRight data-icon="inline-end" /></Button></div></nav>
     <Sheet open={panel} onOpenChange={setPanel}><SheetContent><SheetHeader><SheetTitle>回答状況</SheetTitle></SheetHeader><div className="overflow-y-auto p-4">{numbers}</div></SheetContent></Sheet>
-    <Dialog open={confirm} onOpenChange={setConfirm}><DialogContent><DialogTitle>回答を終了しますか？</DialogTitle><DialogDescription>回答済み{answered}問／未回答{total - answered}問。未回答の問題は0点となります。終了後は回答を変更できません。</DialogDescription><p className="text-sm">確認中も時間は進みます。</p>{finishError && <p role="alert" className="text-sm text-destructive">{finishError}</p>}<Button variant="outline" className="h-12" onClick={() => setConfirm(false)}>回答を見直す</Button><Button className="h-12" disabled={finishing.current} onClick={() => finish()}>終了して結果を見る</Button></DialogContent></Dialog>
+    <Dialog open={confirm} onOpenChange={(o) => { if (!grading) setConfirm(o) }}><DialogContent><DialogTitle>回答を終了しますか？</DialogTitle><DialogDescription>回答済み{answered}問／未回答{total - answered}問。未回答の問題は0点となります。終了後は回答を変更できません。</DialogDescription><p className="text-sm">確認中も時間は進みます。</p>{finishError && <p role="alert" className="text-sm text-destructive">{finishError}</p>}<Button variant="outline" className="h-12" disabled={grading} onClick={() => setConfirm(false)}>回答を見直す</Button><Button className="h-12" disabled={grading} onClick={() => finish()}>{grading ? '採点しています…' : '終了して結果を見る'}</Button></DialogContent></Dialog>
   </div>
 }
