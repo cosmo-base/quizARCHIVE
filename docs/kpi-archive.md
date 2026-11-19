@@ -54,7 +54,7 @@ Archive のスプシ（個人データあり）
 - 個人が分かる値（利用者・ゲストの識別子、Discord の値、報告の本文）は入っていない。画面でも、利用者ごとの一覧は作らない。
 - 練習・テスト・復習の「終わり方」（outcome）：
   - `completed_all` 全問回答して終了 ／ `completed_partial` 未回答ありで終了 ／ `timeout` 時間切れ
-  - `abandoned` 放置（期限を過ぎても開かれていない、または時間制限なしで開始から7日を過ぎても回答中）
+  - `abandoned` 放置（時間制限なしの練習・復習で、開始から7日たっても終えていなかった回。毎朝、保存されていた回答で採点して確定する。選んだ回答は問題の正答率に数える）。期限のある回を放置したときは、期限の時点で `timeout` として確定する
   - `in_progress` 回答中
 - `user_type`：`user`（ログイン）／`guest`（ゲスト）。
 - 分野：`astronomy` 天文、`development` 宇宙開発、`business` 宇宙ビジネス、`exploration` 宇宙探査、`history` 歴史、`basics` 宇宙基礎、`policy` 宇宙政策。
@@ -80,7 +80,7 @@ Archive のスプシ（個人データあり）
 | reports | 誤り報告の数 |
 
 ### kpi_tests（日 × テストの種類 × user_type）
-`started`・`finished`・`passed`・`completed_all`・`completed_partial`・`timeout`・`abandoned`・`in_progress`・`eligible`（開始時に認定対象だった）・`adjusted`（分野をそろえるため難易度の構成を調整した）・`score_sum`・`answered_sum`・`questions_sum`・`duration_sec_sum`。日付は開始日。
+`started`・`finished`・`passed`・`completed_all`・`completed_partial`・`timeout`・`abandoned`（テストではほぼ 0。期限を過ぎた回は毎朝 timeout として確定するため）・`in_progress`・`eligible`（開始時に認定対象だった）・`adjusted`（分野をそろえるため難易度の構成を調整した）・`score_sum`・`answered_sum`・`questions_sum`・`duration_sec_sum`。日付は開始日。
 
 ### kpi_score_dist（月 × テストの種類 × user_type × 得点）
 `score`（0〜40）ごとの `tests`（受験数）。得点の分布のグラフに使う。月は終えた月。
@@ -143,7 +143,7 @@ Archive のスプシ（個人データあり）
 その日の個人レベルの分布（`level_*`）と、専門家の星の分布（`stars_0`〜`stars_5plus`、専門家だけ）。`users` は今いる利用者、`users_left` は Discord サーバーを抜けて匿名化した人。
 
 ### kpi_ops（日ごとの記録。毎日1行足す）
-問題の数（全体・公開・停止）、回の数（全体・回答中・放置）、利用者の数（全体・匿名化）、有効なログインの数、未対応の報告、取り込みで確認が必要な行の数、最後の取り込みの日時と結果（追加・更新・正解が決まらない数・エラーだったか）、スプシのセル数とその上限（1,000万）。
+問題の数（全体・公開・停止）、回の数（全体・回答中・まだ確定していない放置）、利用者の数（全体・匿名化）、有効なログインの数、未対応の報告、取り込みで確認が必要な行の数、最後の取り込みの日時と結果（追加・更新・正解が決まらない数・エラーだったか）、スプシのセル数とその上限（1,000万）。
 
 ### kpi_meta
 `generated_at`（集計した日時）・`version`（GAS の版）・`timezone`・`attempts`（数えた回の数）・`seconds`（かかった秒数）。画面の「最終更新」に使う。

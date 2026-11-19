@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react'
 import useSWR, { mutate as globalMutate, useSWRConfig } from 'swr'
-import { api } from './client'
-import { getSession, useSession } from './session'
+import { api, isMockApi } from './client'
+import { getSession, pinAttemptToken, useSession } from './session'
 import type { AttemptDetail, StartAttemptParams } from './types'
 
 /**
@@ -105,6 +105,8 @@ function primeAttempt(a: AttemptDetail) {
 /** 回を始める。回答中の回・履歴の一覧を取り直す */
 export async function startAttempt(p: StartAttemptParams) {
   const a = await api.attemptsStart(p)
+  const s = getSession()
+  if (s && !isMockApi) pinAttemptToken(a.id, s.token)
   await primeAttempt(a)
   void refreshUserState(['attempts.inProgress', 'history.list'])
   return a
