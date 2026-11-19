@@ -186,6 +186,23 @@
 - サーバーを抜けた人：次のログイン時に `NOT_MEMBER` で拒否し、`left_server_at` を記録して、その人の記録を匿名の値に置き換える（`docs/decisions.md` 5章）。
 - 表示名が Discord で変わった場合、サイトの表示は次のログイン時に更新される。
 
+## 6.5 運営向け（Quiz Manager から）
+
+Quiz Manager の管理画面「過去問サイト」から、Quiz Manager の GAS（`Archive.gs`）が権限を確かめたうえで中継してくる。参加者のサイトからは呼べない。
+
+- 送る形：`{ "action": "admin.…", "adminToken": "…", "params": { …, "actor": "操作した人の名前" } }`
+- 合言葉はスクリプトプロパティ `ADMIN_TOKEN`（Quiz Manager 側の `ARCHIVE_ADMIN_TOKEN` と同じ値）。一致しなければ `UNAUTHORIZED`。
+- Quiz Manager 側の権限：見るのはログインできる人なら誰でも、直すのは「承認」の権限（承認者・管理者）。
+
+| action | 内容 |
+|---|---|
+| `admin.questions.list` | 全問題（停止中・公開前も含む）。正解・正答率・未対応の誤り報告の数つき |
+| `admin.questions.get` | 1問の全内容（全部の版・統計・誤り報告） |
+| `admin.questions.save` | 問題を直す。内容が変わったら新しい版を足す（変更理由が必須）。正解・選択肢を変えたら統計を数え直し、それまでの表示値を引き継ぐ。分野・公開状態だけなら版は増やさない。開いたときの版（`baseVersionId`）が今の版と違えば `CONFLICT`。保存したら問題一覧の一時保存を消す |
+| `admin.reports.list` ／ `admin.reports.update` | 誤り報告の一覧（報告した人は返さない）と状態の変更（`received`・`resolved`・`dismissed`） |
+| `admin.notices.list` ／ `admin.notices.save` | お知らせの一覧（公開前・終了済みも含む）と作成・修正。終了は `endsAt` に日時を入れる |
+| `admin.cache.clear` | 問題一覧の一時保存を消す |
+
 ## 7. 公開のしかた（GAS）
 
 - 実装は Archive 用スプシに紐づく GAS の `archive-api.gs`（リポジトリには含めない）。毎朝の取り込み（`archive-setup.gs`）と同じプロジェクトに置く。
