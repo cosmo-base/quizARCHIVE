@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { PageContainer, PageHeading, PageSkeleton, SurfaceCard } from '@/components/shell/page'
 import { Button } from '@/components/ui/button'
 import { LinkButton } from '@/components/link-button'
-import { DemoLoginDialog } from '@/components/quiz/demo-login-dialog'
+import { LoginDialog } from '@/components/quiz/login-dialog'
 import { QuestionMeta } from '@/components/quiz/question-meta'
 import { AttemptOutcome } from './attempt-outcome'
 import { api } from '@/lib/api/client'
@@ -56,7 +56,7 @@ export function HistoryView({ questions = false }: { questions?: boolean }) {
         {attempts.length === 0 ? <EmptyHistory /> : <div className="overflow-hidden rounded-2xl border bg-card"><div className="hidden grid-cols-[1fr_2fr_1fr_1fr] gap-4 border-b bg-muted px-6 py-3 text-sm font-bold md:grid"><span>日時・結果</span><span>実施内容</span><span>回答・得点</span><span>所要時間・状態</span></div>{attempts.map(a => <Link key={a.id} href={a.finalized ? routes.result(a.id) : routes.attempt(a.id)} className="flex flex-col gap-3 border-b p-5 last:border-0 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-primary md:grid md:grid-cols-[1fr_2fr_1fr_1fr] md:gap-4 md:p-6"><div className="flex flex-wrap items-start gap-2 md:flex-col"><time className="text-sm">{formatDateTime(a.startedAt)}</time><AttemptOutcome attempt={a} /></div><div><h2 className="font-bold">{attemptTitle(a.mode, a.testKind)}</h2><p className="text-sm text-muted-foreground">{attemptSettingsSummary(a)}</p></div><div className="text-sm"><p className="font-bold">{a.analytics ? `${a.analytics.correctCount}／${a.analytics.totalCount}点` : '途中保存'}</p><p>{a.analytics ? `回答${a.analytics.answeredCount}問・未回答${a.analytics.unansweredCount}問` : `${a.answeredCount}問回答済み`}</p></div><div className="text-sm"><p>{a.analytics ? formatDuration(a.analytics.durationSec) : '—'}</p><p className="text-muted-foreground">{statusLabel[a.status]}</p></div></Link>)}</div>}
       </>}
     </>}
-    <DemoLoginDialog open={login} onOpenChange={setLogin} />
+    <LoginDialog open={login} onOpenChange={setLogin} />
   </PageContainer>
 }
 function EmptyHistory() { return <SurfaceCard className="flex flex-col items-start gap-4"><h2 className="font-bold">表示できる学習履歴はありません</h2><p className="text-muted-foreground">条件を変更するか、最初の練習を始めましょう。</p><LinkButton href="/practice">練習する</LinkButton></SurfaceCard> }

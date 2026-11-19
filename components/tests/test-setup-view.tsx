@@ -12,7 +12,8 @@ import { ResumeBanner } from '@/components/quiz/resume-banner'
 import { testCompositions } from '@/lib/config'
 import { testKindLabel, testKindTarget } from '@/lib/labels'
 import { eligibleTestKind } from '@/lib/recognition'
-import { api, loginDemo } from '@/lib/api/client'
+import { api, isMockApi, loginDemo } from '@/lib/api/client'
+import { isDiscordLoginReady, startDiscordLogin } from '@/lib/auth/discord'
 import { useMe } from '@/lib/api/hooks'
 import { useSession } from '@/lib/api/session'
 import type { TestKind } from '@/lib/types'
@@ -85,19 +86,20 @@ export function TestSetupView() {
         <div className="flex items-start justify-between gap-3"><DialogTitle>ログインして挑戦を記録しませんか？</DialogTitle><Button variant="ghost" size="icon-lg" aria-label="ログインせずに進む" onClick={() => setGuestPrompt(false)}><X /></Button></div>
         <DialogDescription>ログインすると、合格実績・レベル・星を保存できます。</DialogDescription>
         <p className="text-sm leading-relaxed">ログインせずに受けたテストは、後からログインしても認定実績に反映されません。</p>
-        <p className="text-sm text-muted-foreground">デモユーザーでログインします。個人情報の入力は不要です。</p>
+        <p className="text-sm text-muted-foreground">{isMockApi ? 'デモユーザーでログインします。個人情報の入力は不要です。' : 'Cosmo Base の Discord サーバーに参加している人がログインできます。メールアドレスは受け取りません。'}</p>
         <Button
           className="h-12"
-          disabled={loggingIn}
+          disabled={loggingIn || (!isMockApi && !isDiscordLoginReady)}
           onClick={() => {
             setLoggingIn(true)
+            if (!isMockApi) { startDiscordLogin(); return } // Discord へ移動し、ログイン後にこの画面へ戻る
             loginDemo()
               .then(() => { setGuestPrompt(false); setPrepared(null); setError('ログインしました。現在の資格に合ったテストを選んでください。') })
               .catch(() => setError('ログインできませんでした。もう一度お試しください。'))
               .finally(() => setLoggingIn(false))
           }}
         >
-          {loggingIn ? 'ログインしています…' : 'ログインする'}
+          {loggingIn ? 'ログインしています…' : isMockApi ? 'ログインする' : 'Discord でログイン'}
         </Button>
       </DialogContent>
     </Dialog>

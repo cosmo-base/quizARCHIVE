@@ -9,6 +9,8 @@ const basePath = process.env.PAGES_BASE_PATH ?? ''
 const nextConfig = {
   output: 'export',
   basePath,
+  // ブラウザ側で Discord ログインの戻り先を作るときに使う
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   typescript: {
     ignoreBuildErrors: true,
   },

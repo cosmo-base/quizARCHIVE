@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { ArrowRight, BookOpen, ClipboardCheck, Clock, PencilLine, PlayCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { UserLevelBadge } from '@/components/quiz/badges'
-import { DemoLoginDialog } from '@/components/quiz/demo-login-dialog'
+import { LoginDialog } from '@/components/quiz/login-dialog'
 import { LevelProgressSummary } from '@/components/quiz/level-progress'
 import { PageContainer, SurfaceCard } from '@/components/shell/page'
 import { attemptTitle } from '@/lib/labels'
@@ -190,7 +190,7 @@ export function HomeView() {
           )}
         </>
       )}
-      <DemoLoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
+      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
     </PageContainer>
   )
 }
