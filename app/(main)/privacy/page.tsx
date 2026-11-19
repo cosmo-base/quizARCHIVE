@@ -30,10 +30,6 @@ export default function PrivacyPage() {
     <PageContainer narrow>
       <PageHeading title="プライバシーについて" description="このサイトで扱う情報と、その使い道をお知らせします。" />
 
-      <p className="rounded-xl bg-muted px-4 py-3 text-sm leading-relaxed text-muted-foreground">
-        現在のサイトは画面を確認するためのデモです。ログインや保存は実際には行わず、操作した内容はお使いのブラウザの中にだけ保存されます。以下は、正式に公開するときの方針です。
-      </p>
-
       <Section id="login" title="ログインについて">
         <p>ログインには Discord を使います。ログインできるのは、Cosmo Base の Discord サーバーに参加している方です。ログインしなくても、過去問・練習・テストは利用できます。</p>
         <p>ログインのときに Discord から受け取るのは、サーバーに参加しているかの確認と、画面への表示に必要な情報だけです。メールアドレスは受け取りません。</p>
@@ -78,7 +74,9 @@ export default function PrivacyPage() {
       </Section>
 
       <Section id="retention" title="保存期間と削除">
-        <p>記録を保存する期間、記録の削除を依頼する方法、Discord サーバーを抜けた方の記録の扱いは検討中です。決まりしだい、このページでお知らせします。</p>
+        <p>記録は、問題の正答率の集計と学習履歴の表示のために、期間を決めずに保存します。</p>
+        <p>Discord サーバーを抜けた方は、次にログインしようとしたときに抜けたことを確認し、その方の記録を、どの Discord アカウントとも結び付かない形（本人と分からない形）に置き換えます。置き換えた記録は統計としてだけ使い、元に戻すことはできません。もう一度サーバーに参加してログインした場合は、新しい利用者として始まります。</p>
+        <p>ご自身の記録を本人と分からない形にしてほしい場合は、Cosmo Base の Discord サーバーで運営にご連絡ください。上と同じ方法で置き換えます。正答率の集計に使うため、記録そのものは消さずに統計として残します。</p>
       </Section>
     </PageContainer>
   )

@@ -120,7 +120,7 @@
 | passes_at_level | 現在の段階の累計合格数 |
 | expert_passes | 専門家到達後の合格数（星の計算用） |
 | created_at ／ last_login_at | 登録日時・最終ログイン日時 |
-| left_server_at | Discord サーバーを抜けたと分かった日時（実績は残す。削除するかは検討中） |
+| left_server_at | Discord サーバーを抜けたと分かった日時。このとき user_key を匿名の値（`anon-…`）に置き換える（本人の依頼で匿名化したときは空のまま） |
 
 ### sessions（ログイン状態）
 | 列 | 内容 |

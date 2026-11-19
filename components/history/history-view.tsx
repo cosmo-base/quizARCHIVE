@@ -44,7 +44,7 @@ export function HistoryView({ questions = false }: { questions?: boolean }) {
   const attempts = (history ?? []).filter(a => (mode === 'all' || a.mode === mode) && (status === 'all' || a.status === status))
   const solved = solvedRows ?? []
   return <PageContainer><PageHeading title="学習履歴" description="これまでの挑戦を振り返って、次の学びにつなげよう。" />
-    {!user ? <SurfaceCard className="flex flex-col items-start gap-4"><h2 className="text-xl font-bold">学びの記録を残しませんか？</h2><p>ログインすると、学習履歴・合格実績・レベル・星を保存できます。</p><Button className="h-12" onClick={() => setLogin(true)}>デモログイン</Button></SurfaceCard> : <>
+    {!user ? <SurfaceCard className="flex flex-col items-start gap-4"><h2 className="text-xl font-bold">学びの記録を残しませんか？</h2><p>ログインすると、学習履歴・合格実績・レベル・星を保存できます。</p><Button className="h-12" onClick={() => setLogin(true)}>ログインする</Button></SurfaceCard> : <>
       <nav className="flex gap-3" aria-label="履歴の種類"><LinkButton variant={questions ? 'outline' : 'default'} href="/history" className="h-12">実施履歴</LinkButton><LinkButton variant={questions ? 'default' : 'outline'} href="/history/questions" className="h-12">解いた問題</LinkButton></nav>
       {questions ? <div className="flex flex-col gap-4">{error && <p role="alert" className="text-destructive">{error}</p>}<p className="text-sm text-muted-foreground">「練習し直す」は復習として別に集計され、正答率・昇格には含まれません。</p>{solved.length === 0 ? <EmptyHistory /> : solved.map(row => {
         const q = row.question

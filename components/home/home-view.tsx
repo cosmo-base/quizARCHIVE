@@ -184,7 +184,7 @@ export function HomeView() {
                 </p>
               </div>
               <Button variant="outline" className="h-11 shrink-0 px-5" onClick={() => setLoginOpen(true)}>
-                デモユーザーでログイン
+                ログインする
               </Button>
             </SurfaceCard>
           )}

@@ -39,6 +39,7 @@ pnpm test           # ロジックの単体テスト
 - `lib/api/`：GAS との窓口（`client.ts`）、画面用のデータ取得（`hooks.ts`）、ログイン状態（`session.ts`）、サーバー役のモック（`mock.ts`）。形は `docs/api.md`
   - 画面は `lib/api/` だけを使い、`lib/store.ts`・`lib/data/questions.ts`（正解入りのモックのデータ）を直接読まない（開発用のデモ設定を除く）
   - ビルド時に `NEXT_PUBLIC_API_URL`（GAS の URL）を設定すると GAS に送る。未設定ならモックで動く。URL はコードに書かない
+  - ログインは Discord（`lib/auth/discord.ts`、戻り先 `/auth/callback`）。クライアントIDはビルド時の `NEXT_PUBLIC_DISCORD_CLIENT_ID`（GitHub の Actions 変数 `DISCORD_CLIENT_ID`）。モックのときはデモログイン
 - `lib/`：型・仮設定（`config.ts`）・分野（`fields.ts`）・モック問題・出題・採点・認定・統計・モックのデータ（`store.ts`）
 - `components/`：画面ごとのビュー、共通部品（`quiz/`・`shell/`・`ui/`）、開発用デモ設定（`demo/`）
 - `app/`：ルーティング（`(main)` 配下が通常画面、`attempts` が回答中画面）
@@ -47,6 +48,10 @@ pnpm test           # ロジックの単体テスト
 ## 実装上の注意
 
 - 色はトークン（`bg-background`・`text-primary` など）を使い、`bg-white` などを直書きしない。
+  - 色は Cosmo Base のブランドガイドラインに合わせる（`app/globals.css`）。ライトは文字 Navy・強調 Ocean Blue、ダーク（`.dark`）は背景 Navy・強調 Sky Blue。
+  - ボタンの面は `cta` トークン（Ocean Blue）。ダークでは Ocean Blue を文字に使わない（Navy 地で読みにくいため）。
+  - ダークモードは端末の設定に合わせ、ヘッダーのボタンで切り替える（`lib/theme.ts`）。
+- 回の開始・終了は `lib/api/hooks.ts` の `startAttempt`・`finishAttempt` を使う（一時保存を更新し、古いデータが一瞬出るのを防ぐ）。
 - 回答中は正解をHTMLに出さない。
 - 終了・認定・統計の更新は `finalized` フラグで回ごとに一度だけ行う。
 - 他の利用者の回は表示・操作しない（`isOwnAttempt` で確認する）。
