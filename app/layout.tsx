@@ -4,6 +4,7 @@ import './globals.css'
 import { Suspense } from 'react'
 import { DemoControlsLoader } from '@/components/demo/demo-controls-loader'
 import { ApiRevalidator } from '@/components/api-revalidator'
+import { themeInitScript } from '@/lib/theme'
 
 /** GitHub Pages ではリポジトリ名のパス配下で公開するため、静的ファイルのURLに付ける */
 const basePath = process.env.PAGES_BASE_PATH ?? ''
@@ -33,8 +34,11 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light',
-  themeColor: '#f6f7fb',
+  colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f7f7fc' },
+    { media: '(prefers-color-scheme: dark)', color: '#000033' },
+  ],
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -42,7 +46,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ja" className={`${notoSansJp.variable} bg-background`}>
+    <html lang="ja" className={`${notoSansJp.variable} bg-background`} suppressHydrationWarning>
+      <head>
+        {/* 端末の設定・保存した選択に合わせて、描画の前にダークモードを決める */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-dvh font-sans antialiased">
         <ApiRevalidator />
         {children}

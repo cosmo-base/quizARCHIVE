@@ -22,6 +22,8 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
   --color-primary-soft: var(--primary-soft);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -38,30 +40,62 @@
 }
 
 :root {
+  /* Cosmo Base ブランドガイドラインの色（Cosmo Navy・Star White・Sky Blue・Moon Cream・Ocean Blue）に合わせる */
   color-scheme: light;
-  --background: #f6f7fb;
-  --foreground: #17243d;
+  --background: #f7f7fc;
+  --foreground: #000033; /* Cosmo Navy（白地では文字色） */
   --card: #ffffff;
-  --card-foreground: #17243d;
+  --card-foreground: #000033;
   --popover: #ffffff;
-  --popover-foreground: #17243d;
-  --primary: #3858d6;
+  --popover-foreground: #000033;
+  --primary: #0b76a0; /* Ocean Blue（白地の強調・リンク） */
   --primary-foreground: #ffffff;
-  --primary-soft: #e9eefc;
-  --secondary: #eef1f7;
-  --secondary-foreground: #17243d;
-  --muted: #eef1f7;
-  --muted-foreground: #56627a;
-  --accent: #e9eefc;
-  --accent-foreground: #17243d;
+  --primary-soft: #eaf4f9;
+  --cta: #0b76a0; /* ボタンの面：Ocean Blue */
+  --cta-foreground: #ffffff;
+  --secondary: #eeeef6;
+  --secondary-foreground: #000033;
+  --muted: #eeeef6;
+  --muted-foreground: #4a4a70;
+  --accent: #eaf4f9;
+  --accent-foreground: #000033;
   --destructive: #c23a3a;
   --destructive-soft: #fbecec;
   --success: #1d7a52;
   --success-soft: #e6f4ec;
-  --border: #e0e5ef;
-  --input: #d3dae8;
-  --ring: #3858d6;
+  --border: #e2e2ee;
+  --input: #d2d2e3;
+  --ring: #0b76a0;
   --radius: 0.75rem;
+}
+
+/* ダークモード：Navy 地。文字の強調は Sky Blue、ボタンの面は Ocean Blue（Ocean Blue を Navy 地の文字には使わない） */
+.dark {
+  color-scheme: dark;
+  --background: #000033; /* Cosmo Navy */
+  --foreground: #eeeeff; /* Star White */
+  --card: #0b0b45;
+  --card-foreground: #eeeeff;
+  --popover: #0b0b45;
+  --popover-foreground: #eeeeff;
+  --primary: #83cbeb; /* Sky Blue（強調・線・アイコン） */
+  --primary-foreground: #000033;
+  --primary-soft: #0f2a55;
+  --cta: #0b76a0; /* Ocean Blue */
+  --cta-foreground: #ffffff;
+  --secondary: #16164f;
+  --secondary-foreground: #eeeeff;
+  --muted: #16164f;
+  --muted-foreground: #b4b4d9;
+  --accent: #16164f;
+  --accent-foreground: #eeeeff;
+  --destructive: #ff8f8f;
+  --destructive-soft: #3a1236;
+  --success: #6fd3a0;
+  --success-soft: #0d3338;
+  --border: #2a2a66;
+  --input: #34347a;
+  --ring: #83cbeb;
 }
 
 @layer base {
