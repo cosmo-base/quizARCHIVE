@@ -1,6 +1,6 @@
 'use client'
 
-import { getGuestId, getSession, setSession } from './session'
+import { forgetAttemptToken, getAttemptToken, getGuestId, getSession, pinAttemptToken, setSession, updateSessionExpiry } from './session'
 import {
   ApiError,
   type ApiErrorCode,
@@ -47,9 +47,16 @@ async function send<T>(req: ApiRequest): Promise<ApiResponse<T>> {
   return (await res.json()) as ApiResponse<T>
 }
 
-async function call<T>(action: string, params: Record<string, unknown> = {}): Promise<T> {
+/**
+ * attemptId を渡すと、その回を始めたときのログイン用トークンで送る（覚えていれば）。
+ * ログインの期限切れ・別のタブでのログアウトのあとも、始めた回を最後まで続けられるようにするため。
+ */
+async function call<T>(action: string, params: Record<string, unknown> = {}, opts: { attemptId?: string } = {}): Promise<T> {
   const session = getSession()
-  const req: ApiRequest = { action, params, ...(session ? { token: session.token } : { guestId: getGuestId() }) }
+  // モックはログイン状態をブラウザ内で持つため、覚えたトークンは使わない
+  const pinned = opts.attemptId && !isMockApi ? getAttemptToken(opts.attemptId) : null
+  const token = pinned ?? session?.token ?? null
+  const req: ApiRequest = { action, params, ...(token ? { token } : { guestId: getGuestId() }) }
   for (let attempt = 0; ; attempt++) {
     let res: ApiResponse<T>
     try {
@@ -57,13 +64,21 @@ async function call<T>(action: string, params: Record<string, unknown> = {}): Pr
     } catch {
       res = { ok: false, error: { code: 'BUSY', message: '通信に失敗しました。' } }
     }
-    if (res.ok) return res.data
+    if (res.ok) {
+      // 回の操作が通ったら、その回を始めた（今の）ログインを覚えておく
+      if (opts.attemptId && !isMockApi && !pinned && session && token === session.token) pinAttemptToken(opts.attemptId, session.token)
+      return res.data
+    }
     // 混雑・通信失敗は少し待って再送する（保存は seq、終了・報告は ID で重複を防ぐ）
     if (res.error.code === 'BUSY' && attempt < RETRY_WAIT_MS.length) {
       await new Promise((r) => setTimeout(r, RETRY_WAIT_MS[attempt]))
       continue
     }
-    if (res.error.code === 'UNAUTHORIZED' && session) setSession(null)
+    if (res.error.code === 'UNAUTHORIZED') {
+      if (pinned && opts.attemptId) forgetAttemptToken(opts.attemptId)
+      // 今のログインそのものが断られたときだけ、ログアウトの状態にする
+      if (session && token === session.token) setSession(null)
+    }
     throw new ApiError(res.error.code, res.error.message)
   }
 }
@@ -83,12 +98,17 @@ export const api = {
 
   attemptsStart: (p: StartAttemptParams) => call<AttemptDetail>('attempts.start', p),
   attemptsSave: (p: { attemptId: string; answers: Record<string, string | null>; seq: number; currentIndex?: number }) =>
-    call<{ savedSeq: number }>('attempts.save', p),
-  attemptsFinish: (p: { attemptId: string; answers: Record<string, string | null>; seq: number }) => call<AttemptDetail>('attempts.finish', p),
-  attemptsGet: (attemptId: string) => call<AttemptDetail>('attempts.get', { attemptId }),
+    call<{ savedSeq: number }>('attempts.save', p, { attemptId: p.attemptId }),
+  attemptsFinish: (p: { attemptId: string; answers: Record<string, string | null>; seq: number }) =>
+    call<AttemptDetail>('attempts.finish', p, { attemptId: p.attemptId }),
+  attemptsGet: (attemptId: string) => call<AttemptDetail>('attempts.get', { attemptId }, { attemptId }),
   attemptsInProgress: () => call<{ attempts: AttemptSummary[] }>('attempts.inProgress'),
 
-  meGet: () => call<{ me: Me | null }>('me.get'),
+  meGet: () =>
+    call<{ me: Me | null; sessionExpiresAt?: string | null }>('me.get').then((r) => {
+      updateSessionExpiry(r.sessionExpiresAt)
+      return r
+    }),
   historyList: () => call<{ attempts: AttemptSummary[] }>('history.list'),
   historyQuestions: () => call<{ rows: SolvedRow[] }>('history.questions'),
 

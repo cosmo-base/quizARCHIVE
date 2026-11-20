@@ -55,6 +55,60 @@ export function getGuestId(): string {
   }
 }
 
+/*
+ * 回ごとに、始めたときのログイン用トークンを覚えておく（docs/decisions.md 7章 TBD-06）。
+ * 回答中にログインの期限が切れたり、別のタブでログアウトしたりしても、その回の保存・終了・表示はこのトークンで送る。
+ * GAS は、期限から24時間までならその回の操作だけを受け付ける。古いものは2日で捨てる。
+ */
+const ATTEMPT_TOKENS_KEY = 'cosmo-quiz-attempt-tokens'
+const ATTEMPT_TOKEN_KEEP_MS = 2 * 86400000
+
+type AttemptTokens = Record<string, { token: string; at: number }>
+
+function readAttemptTokens(): AttemptTokens {
+  try {
+    const all = JSON.parse(window.localStorage.getItem(ATTEMPT_TOKENS_KEY) || '{}') as AttemptTokens
+    const now = Date.now()
+    return Object.fromEntries(Object.entries(all).filter(([, v]) => v && typeof v.token === 'string' && now - v.at < ATTEMPT_TOKEN_KEEP_MS))
+  } catch {
+    return {}
+  }
+}
+
+function writeAttemptTokens(all: AttemptTokens) {
+  try {
+    window.localStorage.setItem(ATTEMPT_TOKENS_KEY, JSON.stringify(all))
+  } catch {
+    // 保存できなくても、ふだんのログイン状態で送る
+  }
+}
+
+export function getAttemptToken(attemptId: string): string | null {
+  if (typeof window === 'undefined') return null
+  return readAttemptTokens()[attemptId]?.token ?? null
+}
+
+export function pinAttemptToken(attemptId: string, token: string) {
+  const all = readAttemptTokens()
+  if (all[attemptId]?.token === token) return
+  all[attemptId] = { token, at: Date.now() }
+  writeAttemptTokens(all)
+}
+
+export function forgetAttemptToken(attemptId: string) {
+  const all = readAttemptTokens()
+  if (!all[attemptId]) return
+  delete all[attemptId]
+  writeAttemptTokens(all)
+}
+
+/** GAS が延ばしたログインの期限を、この端末の記録に合わせる */
+export function updateSessionExpiry(expiresAt: string | null | undefined) {
+  const s = getSession()
+  if (!s || !expiresAt || new Date(expiresAt).getTime() <= new Date(s.expiresAt).getTime()) return
+  setSession({ ...s, expiresAt })
+}
+
 function subscribe(l: () => void) {
   listeners.add(l)
   const onStorage = (e: StorageEvent) => {
