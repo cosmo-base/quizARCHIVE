@@ -1,7 +1,7 @@
 # 過去問サイトの KPI（KPI ダッシュボードに追加する分の仕様）
 
 過去問サイト（毎日宇宙クイズの過去問、https://cbquiz.archive.fsif.jp/ ）の利用状況を、Cosmo Base の KPI ダッシュボード（cosmo-base/kpi-dashboard）に表示するための仕様。
-集計は Archive の GAS（`archive-stats.gs`、版 1.4.0）が作り、ダッシュボードは CSV として読む。機密情報（URL・ID・キー）はこのファイルに書かない。
+集計は Archive の GAS（`archive-stats.gs`、版 1.6.0）が作り、ダッシュボードは CSV として読む。機密情報（URL・ID・キー）はこのファイルに書かない。
 
 ## 1. しくみ
 
@@ -40,6 +40,7 @@ Archive のスプシ（個人データあり）
 | kpi_retention | `NEXT_PUBLIC_KPI_ARCHIVE_RETENTION_CSV_URL` | `ARCHIVE_RETENTION` |
 | kpi_heatmap | `NEXT_PUBLIC_KPI_ARCHIVE_HEATMAP_CSV_URL` | `ARCHIVE_HEATMAP` |
 | kpi_reports | `NEXT_PUBLIC_KPI_ARCHIVE_REPORTS_CSV_URL` | `ARCHIVE_REPORTS` |
+| kpi_errors | `NEXT_PUBLIC_KPI_ARCHIVE_ERRORS_CSV_URL` | `ARCHIVE_ERRORS` |
 | kpi_levels | `NEXT_PUBLIC_KPI_ARCHIVE_LEVELS_CSV_URL` | `ARCHIVE_LEVELS` |
 | kpi_ops | `NEXT_PUBLIC_KPI_ARCHIVE_OPS_CSV_URL` | `ARCHIVE_OPS` |
 | kpi_meta | `NEXT_PUBLIC_KPI_ARCHIVE_META_CSV_URL` | `ARCHIVE_META` |
@@ -78,6 +79,7 @@ Archive のスプシ（個人データあり）
 | single_explanation_only | 単問で「解説だけ表示」 |
 | promotions ／ expert_passes | 昇格の数 ／ 専門家の星のテストの合格（星の加算）の数 |
 | reports | 誤り報告の数 |
+| errors_internal ／ errors_busy | GAS の想定外のエラー ／ 混雑（Discord の回数制限を含む）の件数。記録は90日分だけ残るので、それより前は 0 |
 
 ### kpi_tests（日 × テストの種類 × user_type）
 `started`・`finished`・`passed`・`completed_all`・`completed_partial`・`timeout`・`abandoned`（テストではほぼ 0。期限を過ぎた回は毎朝 timeout として確定するため）・`in_progress`・`eligible`（開始時に認定対象だった）・`adjusted`（分野をそろえるため難易度の構成を調整した）・`score_sum`・`answered_sum`・`questions_sum`・`duration_sec_sum`。日付は開始日。
@@ -121,6 +123,7 @@ Archive のスプシ（個人データあり）
 | site_basic_answers ／ site_basic_correct ／ site_basic_answers_guest | サイトの基本回答数・正解数・うちゲスト（今の統計版） |
 | site_review_answers ／ site_review_correct | 復習の回答数・正解数（今の統計版） |
 | judged_difficulty ／ inherited_difficulty | サイトの回答で判定した難易度 ／ 修正前から引き継いだ難易度 |
+| difficulty_override | 運営が手で固定した難易度（空なら自動）。固定すると、サイトの表示と出題はこの難易度を使う |
 | basic_served ／ review_served ／ test_served | 練習・テスト ／ 復習 ／ テストで出題した回数 |
 | unanswered ／ viewed_unanswered | 出題したが答えなかった数 ／ そのうち表示はした数 |
 | selected_A ／ selected_B ／ selected_C | 各選択肢が選ばれた数（回・単問の合計、全版） |
@@ -138,6 +141,9 @@ Archive のスプシ（個人データあり）
 
 ### kpi_reports（月 × 理由 × 状態）
 `reason`：`answer` 正解 ／ `text` 問題文・選択肢 ／ `explanation` 解説 ／ `other`。`status`：`received` 未対応 ／ `resolved` 対応済み ／ `dismissed` 対応しない。`reports` は件数。
+
+### kpi_errors（日 × 操作 × コード）
+GAS が返した想定外のエラー（`INTERNAL`）と混雑（`BUSY`）の件数（`count`）。`action` は操作の名前（例：`attempts.finish`、`auth.discord`）。直近90日分。実行時間の上限（6分）で止まったものは数えられない。
 
 ### kpi_levels（日ごとの記録。毎日1行足す）
 その日の個人レベルの分布（`level_*`）と、専門家の星の分布（`stars_0`〜`stars_5plus`、専門家だけ）。`users` は今いる利用者、`users_left` は Discord サーバーを抜けて匿名化した人。
@@ -163,7 +169,7 @@ Archive のスプシ（個人データあり）
 | 分野・難易度・レベル | 切り口ごとの正答率と出題数、復習で正答率がどれだけ上がったか（basic と review の比較） | segments |
 | 単問 | 回答・解き直し・解説だけ表示の推移、解き直しの正解率 | daily・questions |
 | 誤り報告 | 理由・状態ごとの件数の推移 | reports |
-| 運用 | 取り込みの結果、放置された回の数、スプシの使用量（上限に対する割合） | ops |
+| 運用 | 取り込みの結果、放置された回の数、スプシの使用量（上限に対する割合）、GAS のエラー・混雑の件数の推移（操作ごとの内訳） | ops・daily・errors |
 
 - 問題の表から、Quiz Manager の過去問サイトの画面（問題の修正）へのリンクを付けてもよい（`/archive?tab=questions&id=<問題ID>`）。
 - 数が少ない区分（例：1〜2件）の率は、ぶれが大きいことが分かるよう件数を必ず並べて出す。
@@ -172,5 +178,4 @@ Archive のスプシ（個人データあり）
 
 - ページの閲覧数・画面の移り方・検索や絞り込みの条件・端末の種類（サイトに記録の仕組みが要る。プライバシーのページにも書く）
 - 誤り報告の対応にかかった時間（reports に「対応した日時」の列が要る）
-- GAS のエラー・混雑の回数（GAS がエラーをスプシに記録する仕組みが要る）
 - お知らせの既読

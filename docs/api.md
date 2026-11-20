@@ -199,7 +199,7 @@ Quiz Manager の管理画面「過去問サイト」から、Quiz Manager の GA
 |---|---|
 | `admin.questions.list` | 全問題（停止中・公開前も含む）。正解・正答率・未対応の誤り報告の数つき |
 | `admin.questions.get` | 1問の全内容（全部の版・統計・誤り報告） |
-| `admin.questions.save` | 問題を直す。内容が変わったら新しい版を足す（変更理由が必須）。正解・選択肢を変えたら統計を数え直し、それまでの表示値を引き継ぐ。分野・公開状態だけなら版は増やさない。開いたときの版（`baseVersionId`）が今の版と違えば `CONFLICT`。保存したら問題一覧の一時保存を消す |
+| `admin.questions.save` | 問題を直す。内容が変わったら新しい版を足す（変更理由が必須）。正解・選択肢を変えたら統計を数え直し、それまでの表示値を引き継ぐ。分野・公開状態・難易度の固定（`difficultyOverride`：`beginner`〜`expert`、`''` で自動に戻す、送らなければ変えない）だけなら版は増やさない。開いたときの版（`baseVersionId`）が今の版と違えば `CONFLICT`。保存したら問題一覧の一時保存を消す |
 | `admin.reports.list` ／ `admin.reports.update` | 誤り報告の一覧（報告した人は返さない）と状態の変更（`received`・`resolved`・`dismissed`） |
 | `admin.notices.list` ／ `admin.notices.save` | お知らせの一覧（公開前・終了済みも含む）と作成・修正。終了は `endsAt` に日時を入れる |
 | `admin.cache.clear` | 問題一覧の一時保存を消す |
