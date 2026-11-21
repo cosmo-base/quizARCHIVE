@@ -1,7 +1,7 @@
 # 過去問サイトの KPI（KPI ダッシュボードに追加する分の仕様）
 
 過去問サイト（毎日宇宙クイズの過去問、https://cbquiz.archive.fsif.jp/ ）の利用状況を、Cosmo Base の KPI ダッシュボード（cosmo-base/kpi-dashboard）に表示するための仕様。
-集計は Archive の GAS（`archive-stats.gs`、版 1.6.1）が作り、ダッシュボードは CSV として読む。機密情報（URL・ID・キー）はこのファイルに書かない。
+集計は Archive の GAS（`archive-stats.gs`、版 1.7.0）が作り、ダッシュボードは CSV として読む。機密情報（URL・ID・キー）はこのファイルに書かない。
 
 ## 1. しくみ
 
@@ -125,7 +125,8 @@ Archive のスプシ（個人データあり）
 | judged_difficulty ／ inherited_difficulty | サイトの回答で判定した難易度 ／ 修正前から引き継いだ難易度 |
 | difficulty_override | 運営が手で固定した難易度（空なら自動）。固定すると、サイトの表示と出題はこの難易度を使う |
 | display_difficulty | **サイトに出している難易度**（表で難易度を出すときはこれを使う）。決まり：固定 → サイトの基本回答10件以上なら判定値 → 修正前からの引き継ぎ → SNS の正答率から → `unknown` |
-| display_accuracy ／ display_source | サイトに出している正答率（0〜1 の率。見やすさのため率で入れている例外。空は未集計）／その出どころ（`site` サイト・`inherited` 引き継ぎ・`sns` SNS・`none` なし） |
+| display_accuracy ／ display_source | サイトに出している正答率（0〜1 の率。見やすさのため率で入れている例外。空は未集計）／難易度の出どころ（`site` サイト・`inherited` 引き継ぎ・`estimate` 推定（見積もり＋X）・`sns` SNS・`none` なし） |
+| difficulty_prior ／ est_accuracy | 運営が付けた難易度の見積もり ／ 推定に使った正答率（X の物差し。0〜1。推定していなければ空）。推定と実際のサイトの正答率をくらべて、推定のよさを確かめるのに使う |
 | basic_served ／ review_served ／ test_served | 練習・テスト ／ 復習 ／ テストで出題した回数 |
 | unanswered ／ viewed_unanswered | 出題したが答えなかった数 ／ そのうち表示はした数 |
 | selected_A ／ selected_B ／ selected_C | 各選択肢が選ばれた数（回・単問の合計、全版） |
