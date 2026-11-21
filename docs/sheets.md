@@ -79,6 +79,7 @@
 | sns_answers_instagram ／ sns_correct_instagram | Instagram の回答数・正答数 |
 | sns_answers_mycommu ／ sns_correct_mycommu | マイコミュの回答数・正答数 |
 | imported_at ／ sns_updated_at | 取り込み日時・SNS の数の最終更新日時 |
+| difficulty_prior | 運営が付けた難易度の見積もり（`beginner`〜`expert`）。問題文と選択肢から付け、難易度の推定の出発点に使う（`docs/decisions.md` 4章） |
 | difficulty_override | 運営が手で固定した難易度（`beginner`〜`expert`。空なら自動）。固定するとサイトの表示と出題はこの難易度を使い、正答率の表示と統計はそのまま。Quiz Manager から直すと、列がなければ GAS が足す |
 
 ### question_versions（問題の版）
