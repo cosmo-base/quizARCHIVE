@@ -245,7 +245,7 @@ export function QuestionListView() {
                       href={routes.question(q.id)}
                       className="group flex h-full flex-col gap-3 rounded-2xl border bg-card p-5 shadow-xs transition-shadow outline-none hover:border-primary/40 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50"
                     >
-                      <QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} />
+                      <QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} timeSensitive={q.timeSensitive} />
                       <p className="line-clamp-3 flex-1 leading-relaxed text-pretty">{q.text}</p>
                       <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
                         詳細へ

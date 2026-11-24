@@ -9,6 +9,7 @@ import { ChoiceList } from '@/components/quiz/choice-list'
 import { ExplanationBlock } from '@/components/quiz/explanation-block'
 import { ReportDialog } from '@/components/quiz/report-dialog'
 import { QuestionMeta } from '@/components/quiz/question-meta'
+import { TimeSensitiveNote } from '@/components/quiz/time-sensitive-note'
 import { StarRow } from '@/components/quiz/star-row'
 import { LinkButton } from '@/components/link-button'
 import { startAttempt, useAttempt } from '@/lib/api/hooks'
@@ -67,7 +68,7 @@ export function ResultView({ id }: { id: string }) {
         const answer = q.selected
         const outcome = !answer ? 'unanswered' : q.correct ? 'correct' : 'wrong'
         if (filter !== 'all' && filter !== outcome) return null
-        return <AccordionItem key={q.id} value={q.id}><AccordionTrigger><span className="flex flex-col items-start gap-2 text-left"><span className="text-sm text-muted-foreground">問題{i + 1} ・ {outcome === 'correct' ? '正解' : outcome === 'wrong' ? '不正解' : '未回答'}</span><span className="leading-relaxed">{q.text}</span></span></AccordionTrigger><AccordionContent><div className="flex flex-col gap-4"><QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} /><p>あなたの回答：{q.choices.find(c => c.id === answer)?.text ?? '未回答'}</p><ChoiceList name={`result-${q.id}`} legend="選択肢と正解" choices={q.choices} value={answer ?? null} disabled reveal={{ correctChoiceId: q.correctChoiceId }} /><ExplanationBlock explanation={q.explanation} references={q.references} /><ReportDialog questionId={q.id} versionId={q.versionId} attemptId={a.id} /></div></AccordionContent></AccordionItem>
+        return <AccordionItem key={q.id} value={q.id}><AccordionTrigger><span className="flex flex-col items-start gap-2 text-left"><span className="text-sm text-muted-foreground">問題{i + 1} ・ {outcome === 'correct' ? '正解' : outcome === 'wrong' ? '不正解' : '未回答'}</span><span className="leading-relaxed">{q.text}</span></span></AccordionTrigger><AccordionContent><div className="flex flex-col gap-4"><QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} /><TimeSensitiveNote postedOn={q.postedOn} timeSensitive={q.timeSensitive} /><p>あなたの回答：{q.choices.find(c => c.id === answer)?.text ?? '未回答'}</p><ChoiceList name={`result-${q.id}`} legend="選択肢と正解" choices={q.choices} value={answer ?? null} disabled reveal={{ correctChoiceId: q.correctChoiceId }} /><ExplanationBlock explanation={q.explanation} references={q.references} /><ReportDialog questionId={q.id} versionId={q.versionId} attemptId={a.id} /></div></AccordionContent></AccordionItem>
       })}</Accordion>
     </SurfaceCard>
   </PageContainer>

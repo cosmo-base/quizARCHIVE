@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { PageContainer, PageSkeleton, SurfaceCard } from '@/components/shell/page'
 import { ChoiceList } from '@/components/quiz/choice-list'
 import { QuestionMeta } from '@/components/quiz/question-meta'
+import { TimeSensitiveNote } from '@/components/quiz/time-sensitive-note'
 import { LinkButton } from '@/components/link-button'
 import { useIdFromQuery } from '@/components/id-from-query'
 import { api } from '@/lib/api/client'
@@ -153,7 +154,7 @@ function ActiveAttempt({ attempt }: { attempt: AttemptDetail }) {
       <p role="status" className="text-sm text-muted-foreground">{statusText}{saveState === 'failed' && <Button variant="link" onClick={resendAll}>再試行</Button>}</p>
       <p role="status" className="text-sm text-destructive">{warning}</p>
       <div className="grid items-start gap-6 lg:grid-cols-[1fr_280px]">
-        <SurfaceCard className="flex min-w-0 flex-col gap-6"><QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} /><h1 className="text-xl font-bold leading-relaxed text-pretty md:text-2xl">{q.text}</h1><ChoiceList name={`attempt-${q.id}`} legend="回答を選択" choices={q.choices} value={answers[q.id] ?? null} onChange={choose} /><p className="text-sm text-muted-foreground">回答は終了するまで変更できます。答え合わせは最後にまとめて行います。</p></SurfaceCard>
+        <SurfaceCard className="flex min-w-0 flex-col gap-6"><QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} /><h1 className="text-xl font-bold leading-relaxed text-pretty md:text-2xl">{q.text}</h1><TimeSensitiveNote postedOn={q.postedOn} timeSensitive={q.timeSensitive} className="-mt-3" /><ChoiceList name={`attempt-${q.id}`} legend="回答を選択" choices={q.choices} value={answers[q.id] ?? null} onChange={choose} /><p className="text-sm text-muted-foreground">回答は終了するまで変更できます。答え合わせは最後にまとめて行います。</p></SurfaceCard>
         <SurfaceCard className="hidden lg:block">{numbers}</SurfaceCard>
       </div>
       <Button variant="outline" className="h-12 lg:hidden" onClick={() => setPanel(true)}>回答状況（{answered}／{total}問）</Button>
