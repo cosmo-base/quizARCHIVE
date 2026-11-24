@@ -14,6 +14,7 @@ export function QuestionMeta({
   difficulty,
   accuracy,
   showId = true,
+  timeSensitive = false,
   className,
 }: {
   questionId?: string
@@ -21,6 +22,8 @@ export function QuestionMeta({
   difficulty: QuestionDifficulty
   accuracy: number | null
   showId?: boolean
+  /** 時事問題の印（一覧用。問題の画面では TimeSensitiveNote で出題日も出す） */
+  timeSensitive?: boolean
   className?: string
 }) {
   return (
@@ -28,6 +31,7 @@ export function QuestionMeta({
       {showId && questionId && <span className="font-mono text-xs text-muted-foreground">{questionId}</span>}
       <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{fieldName(fieldId)}</span>
       <DifficultyBadge difficulty={difficulty} />
+      {timeSensitive && <span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">時事</span>}
       <span className="text-xs text-muted-foreground">
         正答率 <span className="font-bold text-foreground tabular-nums">{accuracyText(accuracy)}</span>
       </span>
