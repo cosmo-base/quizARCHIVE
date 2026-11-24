@@ -52,6 +52,10 @@ export interface PublicQuestion {
   difficulty: QuestionDifficulty
   /** 参加者に見せる正答率（1つだけ）。null は未集計 */
   displayAccuracy: number | null
+  /** SNS で出題した日（yyyy-mm-dd） */
+  postedOn?: string
+  /** 時事問題（出題日の時点の内容） */
+  timeSensitive?: boolean
 }
 
 /** 正解・解説（回の終了後・単問の回答後にだけ返す） */

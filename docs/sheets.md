@@ -81,6 +81,8 @@
 | imported_at ／ sns_updated_at | 取り込み日時・SNS の数の最終更新日時 |
 | difficulty_prior | 運営が付けた難易度の見積もり（`beginner`〜`expert`）。問題文と選択肢から付け、難易度の推定の出発点に使う（`docs/decisions.md` 4章） |
 | difficulty_override | 運営が手で固定した難易度（`beginner`〜`expert`。空なら自動）。固定するとサイトの表示と出題はこの難易度を使い、正答率の表示と統計はそのまま。Quiz Manager から直すと、列がなければ GAS が足す |
+| similar_group | 似た問題のまとまり（まとまりの元の問題ID。例：`Q-0200`。空ならまとまりなし）。同じまとまりの問題は、1回の練習・テストに1問まで（`docs/decisions.md` 7章 04） |
+| time_sensitive | 時事問題（`TRUE`／空）。サイトの問題に「○年○月○日の出題時点の内容です」と出す |
 
 ### question_versions（問題の版）
 | 列 | 内容 |
@@ -201,6 +203,6 @@
 | reports（誤り報告） | report_id、question_id、version_id、attempt_id、reason、detail、owner、created_at、status（`received` 未対応・`resolved` 対応済み・`dismissed` 対応しない） |
 | settings（設定値） | key、value、updated_at（合格点、判定の最低件数・間隔など） |
 | sync_log（取り込み記録） | run_at、kind（setup／migration／daily）、read_rows、added、updated、unresolved（正解を特定できなかった行の数）、message |
-| import_issues（確認が必要な行） | run_at、source_row（元スプシの行番号）、source_no（番号）、kind（correct_unresolved・conjunction_removed・unknown_field・duplicate_no・invalid_date など）、detail |
+| import_issues（確認が必要な行） | run_at、source_row（元スプシの行番号）、source_no（番号）、kind（correct_unresolved・conjunction_removed・unknown_field・duplicate_no・invalid_date・relative_date_rewritten（「今日・本日・今年」などを日付に書き換えた）・time_sensitive_set（時事問題にした）・similar_group_assigned（似た問題のまとまりにした）・unknown_prior（「難易度（自動）」が読めない）など）、detail |
 | api_log（GAS のエラー・混雑） | at、action（操作の名前）、code（`INTERNAL`／`BUSY`）、message（300文字まで）。利用者・ゲストの識別子やトークンは書かない。最初の記録のときに GAS が作り、90日より古い行は毎朝消す |
 | kpi_*（集計） | KPI ダッシュボード用の集計。個人が分かる値は入れない。普段は別のスプシ（`STATS_SHEET_ID`）に書く（`docs/kpi-archive.md`） |

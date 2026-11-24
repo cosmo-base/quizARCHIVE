@@ -10,6 +10,7 @@ import { PageContainer } from '@/components/shell/page'
 import { ChoiceList } from '@/components/quiz/choice-list'
 import { ExplanationBlock } from '@/components/quiz/explanation-block'
 import { QuestionMeta } from '@/components/quiz/question-meta'
+import { TimeSensitiveNote } from '@/components/quiz/time-sensitive-note'
 import { ReportDialog } from '@/components/quiz/report-dialog'
 import { mockConfig } from '@/lib/config'
 import { api, newRequestId } from '@/lib/api/client'
@@ -138,6 +139,7 @@ export function QuestionDetailView({ id }: { id: string }) {
         <header className="flex flex-col gap-4">
           <QuestionMeta questionId={q.id} fieldId={q.fieldId} difficulty={q.difficulty} accuracy={q.displayAccuracy} />
           <h1 className="text-lg leading-relaxed font-bold text-pretty md:text-xl">{q.text}</h1>
+          <TimeSensitiveNote postedOn={q.postedOn} timeSensitive={q.timeSensitive} />
         </header>
 
         <ChoiceList

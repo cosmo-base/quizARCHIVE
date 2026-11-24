@@ -127,6 +127,7 @@ Archive のスプシ（個人データあり）
 | display_difficulty | **サイトに出している難易度**（表で難易度を出すときはこれを使う）。決まり：固定 → サイトの基本回答10件以上なら判定値 → 修正前からの引き継ぎ → SNS の正答率から → `unknown` |
 | display_accuracy ／ display_source | サイトに出している正答率（0〜1 の率。見やすさのため率で入れている例外。空は未集計）／難易度の出どころ（`site` サイト・`inherited` 引き継ぎ・`estimate` 推定（見積もり＋X）・`sns` SNS・`none` なし） |
 | difficulty_prior ／ est_accuracy | 運営が付けた難易度の見積もり ／ 推定に使った正答率（X の物差し。0〜1。推定していなければ空）。推定と実際のサイトの正答率をくらべて、推定のよさを確かめるのに使う |
+| similar_group ／ time_sensitive | 似た問題のまとまり（空ならなし）／時事問題なら 1 |
 | basic_served ／ review_served ／ test_served | 練習・テスト ／ 復習 ／ テストで出題した回数 |
 | unanswered ／ viewed_unanswered | 出題したが答えなかった数 ／ そのうち表示はした数 |
 | selected_A ／ selected_B ／ selected_C | 各選択肢が選ばれた数（回・単問の合計、全版） |

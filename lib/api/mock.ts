@@ -40,14 +40,18 @@ class MockError extends Error {
 
 /* ---------- 変換（正解・解説を外す） ---------- */
 
+/** モックの時事問題（表示の確認用）：問題ID → 出題日 */
+const MOCK_TIME_SENSITIVE: Record<string, string> = { 'Q-076': '2026-11-20' }
+const timeInfo = (id: string) => (MOCK_TIME_SENSITIVE[id] ? { postedOn: MOCK_TIME_SENSITIVE[id], timeSensitive: true } : {})
+
 function toPublic(q: Question): PublicQuestion {
-  return { id: q.id, versionId: q.versionId, fieldId: q.fieldId, text: q.text, choices: q.choices, difficulty: q.difficulty, displayAccuracy: q.displayAccuracy }
+  return { id: q.id, versionId: q.versionId, fieldId: q.fieldId, text: q.text, choices: q.choices, difficulty: q.difficulty, displayAccuracy: q.displayAccuracy, ...timeInfo(q.id) }
 }
 
 function snapToPublic(s: QuestionSnapshot): AttemptQuestion | null {
   const v = resolveSnapshot(s)
   if (!v) return null
-  return { id: s.questionId, versionId: s.versionId, fieldId: s.fieldId, text: v.text, choices: v.choices, difficulty: s.difficulty, displayAccuracy: s.displayAccuracy }
+  return { id: s.questionId, versionId: s.versionId, fieldId: s.fieldId, text: v.text, choices: v.choices, difficulty: s.difficulty, displayAccuracy: s.displayAccuracy, ...timeInfo(s.questionId) }
 }
 
 function explanationOf(q: { correctChoiceId: string; explanation: string; references: ExplanationInfo['references'] }): ExplanationInfo {

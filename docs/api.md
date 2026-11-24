@@ -54,9 +54,11 @@
   "field": "宇宙探査", "postedOn": "2026-11-14", "platforms": ["x"],
   "text": "…", "choices": [{ "id": "A", "text": "…" }, { "id": "B", "text": "…" }, { "id": "C", "text": "…" }],
   "difficulty": "advanced",
-  "displayAccuracy": 0.667
+  "displayAccuracy": 0.667,
+  "timeSensitive": false
 }
 ```
+- `timeSensitive`：時事問題。`true` なら画面に「（`postedOn` の日付）の出題時点の内容です」と出す。回の問題（`attempts.get` など）にも `postedOn` と一緒に入る。
 - `difficulty`：`beginner`／`intermediate`／`advanced`／`expert`／`unknown`（SNS 正答率なし・基本回答10件未満）。
 - `displayAccuracy`：参加者に見せる正答率（1つだけ）。`null` は未集計。
 
@@ -198,8 +200,8 @@ Quiz Manager の管理画面「過去問サイト」から、Quiz Manager の GA
 | action | 内容 |
 |---|---|
 | `admin.questions.list` | 全問題（停止中・公開前も含む）。正解・正答率・未対応の誤り報告の数つき |
-| `admin.questions.get` | 1問の全内容（全部の版・統計・誤り報告） |
-| `admin.questions.save` | 問題を直す。内容が変わったら新しい版を足す（変更理由が必須）。正解・選択肢を変えたら統計を数え直し、それまでの表示値を引き継ぐ。分野・公開状態・難易度の固定（`difficultyOverride`：`beginner`〜`expert`、`''` で自動に戻す、送らなければ変えない）だけなら版は増やさない。開いたときの版（`baseVersionId`）が今の版と違えば `CONFLICT`。保存したら問題一覧の一時保存を消す |
+| `admin.questions.get` | 1問の全内容（全部の版・統計・誤り報告）。同じ似た問題のまとまりのほかの問題（`similar`：ID・問題文・正解の文字・出題日・状態） |
+| `admin.questions.save` | 問題を直す。内容が変わったら新しい版を足す（変更理由が必須）。正解・選択肢を変えたら統計を数え直し、それまでの表示値を引き継ぐ。分野・公開状態・難易度の固定（`difficultyOverride`：`beginner`〜`expert`、`''` で自動に戻す、送らなければ変えない）・見積もり（`difficultyPrior`）・似た問題のまとまり（`similarGroup`：問題ID、`''` で外す。指定した問題が別のまとまりに入っていればそのまとまりにする。存在しない問題は `INVALID`）・時事問題（`timeSensitive`）だけなら版は増やさない（どれも送らなければ変えない）。開いたときの版（`baseVersionId`）が今の版と違えば `CONFLICT`。保存したら問題一覧の一時保存を消す |
 | `admin.reports.list` ／ `admin.reports.update` | 誤り報告の一覧（報告した人は返さない）と状態の変更（`received`・`resolved`・`dismissed`） |
 | `admin.notices.list` ／ `admin.notices.save` | お知らせの一覧（公開前・終了済みも含む）と作成・修正。終了は `endsAt` に日時を入れる |
 | `admin.cache.clear` | 問題一覧の一時保存を消す |
