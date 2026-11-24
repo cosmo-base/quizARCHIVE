@@ -205,6 +205,9 @@ Quiz Manager の管理画面「過去問サイト」から、Quiz Manager の GA
 | `admin.reports.list` ／ `admin.reports.update` | 誤り報告の一覧（報告した人は返さない）と状態の変更（`received`・`resolved`・`dismissed`） |
 | `admin.notices.list` ／ `admin.notices.save` | お知らせの一覧（公開前・終了済みも含む）と作成・修正。終了は `endsAt` に日時を入れる |
 | `admin.cache.clear` | 問題一覧の一時保存を消す |
+| `admin.similar.candidates` | 似た問題の候補（`limit`：最大300、初期100）。問題文と正解の文字の2つ組を、珍しい組ほど重く数えて比べ（TF-IDF のコサイン）、settings の `similar_candidate_min`（初期 0.25）以上を近い順に返す。同じまとまりの組と「違う」とした組は除く。`hint` はすでに同じ回に出さない組（答えが分かってしまう組）。計算は6時間一時保存する |
+| `admin.similar.merge` | 2問（`questionA`・`questionB`）を同じまとまりにする。どちらかが入っていればそのまとまり、両方なら A のまとまりに B のまとまりごと移す、どちらもなければ ID の小さいほう。版は増やさない |
+| `admin.similar.dismiss` | 2問を「似ていない」として候補から外す（similar_dismissed タブに担当者名と日時を残す） |
 
 ## 7. 公開のしかた（GAS）
 
