@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { LinkButton } from '@/components/link-button'
 import { PageContainer } from '@/components/shell/page'
@@ -8,12 +9,18 @@ import { useNotices } from '@/lib/api/hooks'
 import { PageSkeleton } from '@/components/shell/page'
 import { routes } from '@/lib/routes'
 import { formatDate } from '@/lib/time'
+import { useReadNotices } from '@/lib/notice-read'
 
 export function NoticeDetailViewFromQuery() {
   const id = useIdFromQuery()
   const { data: notices, error } = useNotices()
-  if (!notices && !error) return <PageSkeleton />
+  const { markRead } = useReadNotices()
   const notice = notices?.find((n) => n.id === id)
+  // 開いたら既読にする（ホームに出なくなる）
+  useEffect(() => {
+    if (notice) markRead(notice.id)
+  }, [notice, markRead])
+  if (!notices && !error) return <PageSkeleton />
   if (!notice) {
     return (
       <PageContainer narrow>
@@ -27,9 +34,9 @@ export function NoticeDetailViewFromQuery() {
 
   return (
     <PageContainer narrow>
-      <LinkButton href="/" variant="ghost" className="h-11 self-start px-2">
+      <LinkButton href="/notices" variant="ghost" className="h-11 self-start px-2">
           <ArrowLeft aria-hidden="true" />
-          ホームへ
+          お知らせの一覧へ
         </LinkButton>
       <article className="flex flex-col gap-5 rounded-2xl border bg-card p-5 md:p-8">
         <header className="flex flex-col gap-2">
